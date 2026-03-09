@@ -1,86 +1,88 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { PlusCircle, BookOpen, Clock, Users, ChevronRight } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { teacherService } from '../../services/api';
+import { PlusCircle, ClipboardList, BookOpen, HelpCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 
-export const TeacherDashboard = () => {
-  const activeTests = [
-    { id: "t1", name: "Data Structures Midterm", students: 45, duration: "120m", status: "Active" },
-    { id: "t2", name: "React Basics Assessment", students: 120, duration: "60m", status: "Scheduled" },
-  ];
+export function TeacherDashboard() {
+  const [questions, setQuestions] = useState([]);
+  const [tests, setTests] = useState([]);
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    teacherService.getQuestions().then(setQuestions).catch(console.error);
+    teacherService.getTests().then(setTests).catch(console.error);
+  }, []);
+
+  const difficultyColor = { EASY: 'text-green-400', MEDIUM: 'text-yellow-400', HARD: 'text-red-400' };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="p-6 space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Teacher Dashboard</h2>
-        <p className="text-gray-500 dark:text-gray-400">
-          Manage your questions, tests, and monitor student performance.
-        </p>
+        <h1 className="text-2xl font-bold text-white">Welcome, {user?.name} 👋</h1>
+        <p className="text-slate-400 mt-1">Manage your questions and tests</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-none">
-          <CardHeader>
-            <CardTitle className="text-white">Need to assess students?</CardTitle>
-            <CardDescription className="text-blue-100">
-              Create a new coding test and share the link or QR code.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/teacher/tests/create">
-              <Button className="bg-white text-blue-600 hover:bg-gray-100">
-                <PlusCircle className="mr-2" size={18} />
-                Create New Test
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-none">
-          <CardHeader>
-            <CardTitle className="text-white">Grow your Question Bank</CardTitle>
-            <CardDescription className="text-indigo-100">
-              Add new algorithmic challenges for your tests.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link to="/teacher/questions">
-              <Button className="bg-white text-indigo-600 hover:bg-gray-100">
-                <BookOpen className="mr-2" size={18} />
-                Add Question
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="glass-card p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <HelpCircle size={20} className="text-purple-400" />
+            <span className="text-slate-300 font-medium">Questions</span>
+          </div>
+          <p className="text-3xl font-bold text-white">{questions.length}</p>
+        </div>
+        <div className="glass-card p-5">
+          <div className="flex items-center gap-3 mb-2">
+            <ClipboardList size={20} className="text-blue-400" />
+            <span className="text-slate-300 font-medium">Tests Created</span>
+          </div>
+          <p className="text-3xl font-bold text-white">{tests.length}</p>
+        </div>
+        <div className="glass-card p-5 flex flex-col gap-2">
+          <Link to="/teacher/questions/create" className="btn-primary text-center text-sm">+ New Question</Link>
+          <Link to="/teacher/tests/create" className="btn-secondary text-center text-sm">+ New Test</Link>
+        </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Your Active & Scheduled Tests</h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {activeTests.map((test) => (
-            <Card key={test.id} className="hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-green-900/30 dark:text-green-400">
-                    {test.status}
-                  </div>
+        <h2 className="text-lg font-semibold text-white">My Questions</h2>
+        {questions.length === 0 ? (
+          <div className="glass-card p-8 text-center text-slate-500">No questions yet. Create your first one!</div>
+        ) : (
+          <div className="grid gap-3">
+            {questions.map(q => (
+              <div key={q.id} className="glass-card p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-white">{q.title}</p>
+                  <p className="text-slate-400 text-sm mt-0.5">{q.marks} marks · {q.expectedTimeComplexity || 'N/A'}</p>
                 </div>
-                <CardTitle className="text-lg mt-2">{test.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="flex items-center"><Users className="mr-1" size={14}/> {test.students}</span>
-                  <span className="flex items-center"><Clock className="mr-1" size={14}/> {test.duration}</span>
+                <span className={`text-sm font-semibold ${difficultyColor[q.difficulty] || 'text-slate-400'}`}>
+                  {q.difficulty}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-white">My Tests</h2>
+        {tests.length === 0 ? (
+          <div className="glass-card p-8 text-center text-slate-500">No tests yet. Create your first exam!</div>
+        ) : (
+          <div className="grid gap-3">
+            {tests.map(t => (
+              <div key={t.id} className="glass-card p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-white">{t.name}</p>
+                  <p className="text-slate-400 text-sm mt-0.5">{t.duration} min · Status: <span className="text-purple-400">{t.status}</span></p>
                 </div>
-                <Button variant="ghost" className="w-full mt-4 justify-between h-8 text-sm">
-                  Monitor Test <ChevronRight size={16} />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                <Link to={`/teacher/tests/${t.id}`} className="text-sm text-purple-400 hover:text-purple-300">View →</Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-};
+}

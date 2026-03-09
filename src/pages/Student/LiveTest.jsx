@@ -1,206 +1,312 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { CodeEditor } from "../../components/editor/CodeEditor";
-import { Button } from "../../components/ui/Button";
-import { Modal } from "../../components/ui/Modal";
-import { Clock, LayoutTemplate, Bug, CheckCircle2 } from "lucide-react";
-import toast from "react-hot-toast";
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { studentService } from '../../services/api';
+import { useAuthStore } from '../../store/authStore';
+import Editor from '@monaco-editor/react';
+import toast from 'react-hot-toast';
+import {
+  Play, Send, Clock, CheckCircle2, XCircle, AlertTriangle, FileText, Code
+} from 'lucide-react';
 
-const MOCK_QUESTION = {
-  title: "Two Sum",
-  difficulty: "Easy",
-  marks: 10,
-  description: "Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nYou can return the answer in any order.",
-  inputFormat: "The first line contains an integer n (size of array).\nThe second line contains n space-separated integers.\nThe third line contains an integer target.",
-  outputFormat: "Print two space-separated integers representing the indices.",
-  constraints: "2 <= nums.length <= 10^4\n-10^9 <= nums[i] <= 10^9\n-10^9 <= target <= 10^9",
-};
+const DEFAULT_CODE = `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your solution here\n        \n    }\n}`;
 
-export const LiveTest = () => {
+function useCountdown(endMs) {
+  const [remaining, setRemaining] = useState(null);
+  useEffect(() => {
+    if (!endMs) return;
+    const tick = () => setRemaining(Math.max(0, endMs - Date.now()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endMs]);
+  if (remaining === null) return '';
+  const h = Math.floor(remaining / 3600000);
+  const m = Math.floor((remaining % 3600000) / 60000);
+  const s = Math.floor((remaining % 60000) / 1000);
+  return `${h > 0 ? `${h}h ` : ''}${m}m ${String(s).padStart(2, '0')}s`;
+}
+
+export function LiveTest() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState(3600); // 60 mins
-  const [consoleOutput, setConsoleOutput] = useState([]);
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState(null);
+  const { user } = useAuthStore();
+
+  const [test, setTest] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [code, setCode] = useState(DEFAULT_CODE);
+  const [output, setOutput] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState(null);
+  // Mobile tab: 'problem' | 'editor'
+  const [mobileTab, setMobileTab] = useState('problem');
+
+  const endMs = test?.endTime ? new Date(test.endTime).getTime() : null;
+  const countdown = useCountdown(endMs);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    studentService.getTest(id).then(setTest).catch(() => toast.error('Test not found'));
+    studentService.getTestQuestions(id).then(setQuestions).catch(console.error);
+  }, [id]);
 
-  const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h > 0 ? h + ":" : ""}${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  };
+  useEffect(() => {
+    if (countdown === '0m 00s' && !submitted && questions.length > 0) {
+      toast('⏰ Time is up! Auto-submitting...', { icon: '⏰' });
+      handleSubmit();
+    }
+  }, [countdown]);
 
-  const handleRun = (code, language) => {
-    toast.error("Running code...");
-    setConsoleOutput([{ type: "info", text: `Compiling ${language}...` }]);
-    
-    // Mock API run
-    setTimeout(() => {
-      setConsoleOutput([
-        { type: "info", text: "Compilation successful." },
-        { type: "success", text: "Test Case 1: Passed (12ms)" },
-        { type: "success", text: "Test Case 2: Passed (15ms)" },
-        { type: "error", text: "Test Case 3: Failed. Expected Output: [1, 2], Got: [0, 1]" }
-      ]);
-      toast.success("Execution completed");
-    }, 1500);
-  };
+  const activeQuestion = questions[activeIdx];
 
-  const handleSubmit = (code, language) => {
-    setConsoleOutput([{ type: "info", text: "Evaluating all test cases..." }]);
-    
-    // Mock submit process
-    setTimeout(() => {
-      setSubmissionResult({
-        passed: 4,
-        total: 5,
-        score: 8,
-        marks: 10
+  const handleRun = async () => {
+    if (!activeQuestion) return;
+    setRunning(true);
+    setOutput(null);
+    // Switch to editor tab on mobile so user can see output
+    setMobileTab('editor');
+    try {
+      const sampleTestCases = activeQuestion.testCases?.filter(tc => !tc.isHidden).map(tc => ({
+        input: tc.input,
+        expectedOutput: tc.expectedOutput,
+      })) || [];
+
+      const res = await studentService.runCode({
+        code,
+        language: 'java',
+        sampleTestCases: sampleTestCases.length > 0 ? sampleTestCases : undefined,
+        input: sampleTestCases.length === 0 ? '' : undefined,
       });
-      setShowSubmitModal(true);
-      setConsoleOutput([
-        { type: "success", text: "Passed 4/5 test cases." },
-        { type: "info", text: "Score: 8/10" }
-      ]);
-    }, 2000);
+      setOutput(res);
+    } catch (err) {
+      toast.error('Execution failed. Check your code.');
+    } finally {
+      setRunning(false);
+    }
   };
+
+  const handleSubmit = async () => {
+    if (!activeQuestion || submitted) return;
+    setSubmitting(true);
+    try {
+      const res = await studentService.submitCode({
+        questionId: activeQuestion.id,
+        testId: id,
+        code,
+        language: 'java',
+      });
+      setResult(res);
+      setSubmitted(true);
+      toast.success(`Submitted! Score: ${res.score?.toFixed(1)} / ${activeQuestion.marks}`);
+    } catch (err) {
+      toast.error('Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!test) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-gradient)' }}>
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500"></div>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col h-screen bg-[#F3F4F6] dark:bg-[#0f0f11] text-gray-900 dark:text-gray-100 font-sans">
-      {/* Top Bar */}
-      <header className="h-14 bg-white dark:bg-[#18181b] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 shadow-sm z-10">
-        <div className="flex items-center space-x-2 font-bold text-lg">
-          <LayoutTemplate className="text-blue-600 dark:text-blue-500" />
-          <span>CodeArena <span className="text-gray-400 font-normal text-sm ml-2">| {MOCK_QUESTION.title}</span></span>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-gradient)' }}>
+      {/* Header */}
+      <header className="border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-sm px-4 py-3 flex items-center justify-between gap-3 flex-shrink-0">
+        <div className="min-w-0">
+          <h1 className="font-bold text-white text-base sm:text-lg truncate">{test.name}</h1>
+          <p className="text-slate-400 text-xs">{questions.length} question{questions.length !== 1 ? 's' : ''}</p>
         </div>
-        
-        <div className="flex items-center space-x-6">
-          <div className={`flex items-center font-mono font-bold text-lg ${timeLeft < 300 ? 'text-red-500 animate-pulse' : ''}`}>
-            <Clock size={18} className="mr-2" />
-            {formatTime(timeLeft)}
-          </div>
-          <Button variant="danger" size="sm" onClick={() => navigate("/student")} className="px-6">
-            End Test
-          </Button>
+        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          {countdown && (
+            <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs sm:text-sm ${parseInt(countdown) < 5 ? 'bg-red-500/20 text-red-400' : 'bg-slate-700/50 text-slate-300'}`}>
+              <Clock size={13} />
+              <span className="font-mono font-semibold whitespace-nowrap">{countdown}</span>
+            </div>
+          )}
+          <button onClick={handleSubmit} disabled={submitting || submitted}
+            className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm py-2 px-3 sm:px-4">
+            <Send size={13} />
+            <span className="hidden xs:inline sm:inline">
+              {submitted ? 'Submitted' : submitting ? 'Submitting...' : 'Submit'}
+            </span>
+            <span className="xs:hidden sm:hidden">
+              {submitted ? '✓' : submitting ? '...' : 'Sub'}
+            </span>
+          </button>
         </div>
       </header>
 
-      {/* Main Workspace */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel: Question Desc */}
-        <div className="w-1/3 min-w-[300px] border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-[#18181b] overflow-y-auto">
-          <div className="p-6 space-y-6">
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-2xl font-bold">{MOCK_QUESTION.title}</h1>
-                <span className="px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                  {MOCK_QUESTION.difficulty}
-                </span>
-              </div>
-              <p className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 leading-relaxed text-sm">
-                {MOCK_QUESTION.description}
-              </p>
-            </div>
+      {/* Mobile tab switcher */}
+      <div className="livetest-tabs">
+        <button
+          className={`livetest-tab ${mobileTab === 'problem' ? 'active' : ''}`}
+          onClick={() => setMobileTab('problem')}
+        >
+          <FileText size={14} style={{ display: 'inline', marginRight: 6 }} />
+          Problem
+        </button>
+        <button
+          className={`livetest-tab ${mobileTab === 'editor' ? 'active' : ''}`}
+          onClick={() => setMobileTab('editor')}
+        >
+          <Code size={14} style={{ display: 'inline', marginRight: 6 }} />
+          Editor
+        </button>
+      </div>
 
-            <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-              <div>
-                <h3 className="font-semibold text-sm mb-1">Input Format</h3>
-                <p className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-50 dark:bg-[#0f0f11] p-3 rounded-lg border dark:border-gray-800">
-                  {MOCK_QUESTION.inputFormat}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm mb-1">Output Format</h3>
-                <p className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-50 dark:bg-[#0f0f11] p-3 rounded-lg border dark:border-gray-800">
-                  {MOCK_QUESTION.outputFormat}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm mb-1">Constraints</h3>
-                <p className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-50 dark:bg-[#0f0f11] p-3 rounded-lg border dark:border-gray-800">
-                  {MOCK_QUESTION.constraints}
-                </p>
-              </div>
+      <div className="livetest-body flex-1">
+        {/* Problem Panel */}
+        <div className={`livetest-problem-panel space-y-4 ${mobileTab !== 'problem' ? 'livetest-panel-hidden' : ''}`}>
+          {/* Question Nav */}
+          {questions.length > 1 && (
+            <div className="flex gap-2 flex-wrap">
+              {questions.map((q, i) => (
+                <button key={i} onClick={() => setActiveIdx(i)}
+                  className={`w-9 h-9 rounded-lg font-medium text-sm transition-all ${i === activeIdx ? 'bg-purple-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'}`}>
+                  {i + 1}
+                </button>
+              ))}
             </div>
-          </div>
+          )}
+
+          {activeQuestion ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg font-bold text-white">{activeQuestion.title}</h2>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                  activeQuestion.difficulty === 'EASY' ? 'bg-green-500/20 text-green-400' :
+                  activeQuestion.difficulty === 'HARD' ? 'bg-red-500/20 text-red-400' :
+                  'bg-yellow-500/20 text-yellow-400'}`}>
+                  {activeQuestion.difficulty}
+                </span>
+                <span className="ml-auto text-sm text-slate-400">{activeQuestion.marks} marks</span>
+              </div>
+
+              <div className="text-slate-300 leading-relaxed whitespace-pre-wrap text-sm">
+                {activeQuestion.description}
+              </div>
+
+              {activeQuestion.inputFormat && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-300 mb-1">Input Format</h3>
+                  <p className="text-slate-400 text-sm">{activeQuestion.inputFormat}</p>
+                </div>
+              )}
+              {activeQuestion.outputFormat && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-300 mb-1">Output Format</h3>
+                  <p className="text-slate-400 text-sm">{activeQuestion.outputFormat}</p>
+                </div>
+              )}
+              {activeQuestion.constraints && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-300 mb-1">Constraints</h3>
+                  <p className="text-slate-400 text-sm font-mono">{activeQuestion.constraints}</p>
+                </div>
+              )}
+
+              {/* Sample Test Cases */}
+              {activeQuestion.testCases?.filter(tc => !tc.isHidden).map((tc, i) => (
+                <div key={i} className="bg-slate-800/60 rounded-xl p-4 space-y-2">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Example {i + 1}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Input</p>
+                      <pre className="bg-slate-900/80 rounded-lg p-2 text-slate-300 text-xs font-mono overflow-x-auto">{tc.input}</pre>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-1">Output</p>
+                      <pre className="bg-slate-900/80 rounded-lg p-2 text-slate-300 text-xs font-mono overflow-x-auto">{tc.expectedOutput}</pre>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-slate-500">Loading questions...</div>
+          )}
         </div>
 
-        {/* Right Panel: Editor & Console */}
-        <div className="flex-1 flex flex-col min-w-[400px]">
-          {/* Editor */}
-          <div className="flex-1 relative">
-            <CodeEditor onRun={handleRun} onSubmit={handleSubmit} />
+        {/* Editor + Output Panel */}
+        <div className={`livetest-editor-panel ${mobileTab !== 'editor' ? 'livetest-panel-hidden' : ''}`}>
+          <div className="flex-1" style={{ minHeight: 0, flex: 1 }}>
+            <Editor
+              height="100%"
+              defaultLanguage="java"
+              value={code}
+              onChange={val => setCode(val || '')}
+              theme="vs-dark"
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                lineNumbersMinChars: 3,
+                padding: { top: 12 },
+              }}
+            />
           </div>
 
-          {/* Console Output */}
-          <div className="h-64 border-t border-gray-800 bg-[#1e1e1e] flex flex-col">
-            <div className="flex items-center px-4 py-2 border-b border-gray-800 bg-[#252526] text-xs font-semibold text-gray-400">
-              <Bug size={14} className="mr-2" /> Test Results Console
+          {/* Output Panel */}
+          <div className="border-t border-slate-700/50 bg-slate-900/90 p-4 max-h-[220px] overflow-y-auto flex-shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-slate-300">Output</h3>
+              <button onClick={handleRun} disabled={running}
+                className="flex items-center gap-2 text-sm bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg transition-colors">
+                <Play size={14} />
+                {running ? 'Running...' : 'Run Code'}
+              </button>
             </div>
-            <div className="flex-1 p-4 overflow-y-auto font-mono text-sm space-y-2">
-              {consoleOutput.length === 0 ? (
-                <div className="text-gray-500 italic">Run your code to see results...</div>
-              ) : (
-                consoleOutput.map((log, i) => (
-                  <div key={i} className={`
-                    ${log.type === "error" ? "text-red-400" : ""}
-                    ${log.type === "success" ? "text-green-400" : ""}
-                    ${log.type === "info" ? "text-blue-300" : ""}
-                  `}>
-                    &gt; {log.text}
+
+            {/* Submission Result */}
+            {result && (
+              <div className="mb-3 p-3 rounded-lg bg-slate-800/80 space-y-1">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-green-400" />
+                  <span className="text-white font-semibold">Submission Result</span>
+                </div>
+                <p className="text-sm text-slate-300">
+                  Score: <span className="text-green-400 font-bold">{result.score?.toFixed(1)}</span> · 
+                  Accuracy: <span className="text-blue-400 font-bold">{result.accuracy?.toFixed(1)}%</span>
+                </p>
+              </div>
+            )}
+
+            {/* Run Output */}
+            {output && (
+              <div className="space-y-2">
+                {output.testCaseResults?.map((tc, i) => (
+                  <div key={i} className={`p-2.5 rounded-lg text-sm ${tc.passed ? 'bg-green-500/10 border border-green-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
+                    <div className="flex items-center gap-2">
+                      {tc.passed ? <CheckCircle2 size={14} className="text-green-400" /> : <XCircle size={14} className="text-red-400" />}
+                      <span className={tc.passed ? 'text-green-400' : 'text-red-400'}>
+                        Sample {i + 1}: {tc.passed ? 'Passed' : 'Failed'}
+                      </span>
+                    </div>
+                    {!tc.passed && tc.actualOutput && (
+                      <pre className="mt-1 text-xs text-slate-400 font-mono">Got: {tc.actualOutput}</pre>
+                    )}
+                    {tc.error && <pre className="mt-1 text-xs text-red-400 font-mono">{tc.error}</pre>}
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+                {output.output && (
+                  <pre className="text-sm text-slate-300 bg-slate-800/50 rounded-lg p-2 font-mono">{output.output}</pre>
+                )}
+                {output.error && (
+                  <pre className="text-sm text-red-400 bg-red-500/10 rounded-lg p-2 font-mono">{output.error}</pre>
+                )}
+              </div>
+            )}
+
+            {!output && !result && (
+              <p className="text-slate-500 text-sm">Click "Run Code" to test against sample test cases</p>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Submission Result Modal */}
-      <Modal isOpen={showSubmitModal} onClose={() => setShowSubmitModal(false)} title="Submission Result">
-        {submissionResult && (
-          <div className="flex flex-col items-center justify-center p-6 space-y-6 text-center">
-            {submissionResult.passed === submissionResult.total ? (
-              <CheckCircle2 size={64} className="text-green-500 mb-2" />
-            ) : (
-              <Bug size={64} className="text-orange-500 mb-2" />
-            )}
-            
-            <div className="space-y-2 w-full">
-              <h3 className="text-2xl font-bold">
-                {submissionResult.passed === submissionResult.total ? "All Tests Passed!" : "Partial Success"}
-              </h3>
-              <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-700">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Test Cases Passed</div>
-                  <div className="text-2xl font-bold">{submissionResult.passed} / {submissionResult.total}</div>
-                </div>
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-700">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Your Score</div>
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{submissionResult.score} / {submissionResult.marks}</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex space-x-4 w-full pt-4">
-              <Button onClick={() => setShowSubmitModal(false)} variant="outline" className="flex-1">
-                Close & Keep Editing
-              </Button>
-              <Button onClick={() => navigate("/student")} className="flex-1">
-                Return to Dashboard
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
-};
+}

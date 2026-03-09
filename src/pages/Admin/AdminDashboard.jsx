@@ -1,70 +1,40 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/Card";
-import { Users, BookOpen, MonitorPlay, BarChart2 } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { adminService } from '../../services/api';
+import { Users, BookOpen, ClipboardList, Activity } from 'lucide-react';
 
-export const AdminDashboard = () => {
-  const stats = [
-    { title: "Total Teachers", value: "42", icon: Users, color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/30" },
-    { title: "Total Students", value: "1,248", icon: Users, color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/30" },
-    { title: "Total Tests", value: "156", icon: MonitorPlay, color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/30" },
-    { title: "Question Bank", value: "892", icon: BookOpen, color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/30" },
+export function AdminDashboard() {
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    adminService.getDashboard().then(setStats).catch(console.error);
+  }, []);
+
+  const cards = [
+    { label: 'Total Students', value: stats?.totalStudents ?? '—', icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+    { label: 'Total Teachers', value: stats?.totalTeachers ?? '—', icon: BookOpen, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Total Tests', value: stats?.totalTests ?? '—', icon: ClipboardList, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+    { label: 'Total Submissions', value: stats?.totalSubmissions ?? '—', icon: Activity, color: 'text-orange-400', bg: 'bg-orange-500/10' },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Overview</h2>
-        <p className="text-gray-500 dark:text-gray-400">
-          Welcome back, Admin. Here's what's happening today.
-        </p>
+        <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
+        <p className="text-slate-400 mt-1">Platform overview</p>
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2 mt-4 lg:grid-cols-4">
-        {stats.map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-full ${stat.bg}`}>
-                  <Icon size={16} className={stat.color} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{stat.value}</div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 mt-8">
-        <Card className="min-h-[300px]">
-          <CardHeader>
-            <CardTitle>Recent Platform Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-500 flex items-center justify-center h-48">
-            <div className="flex flex-col items-center gap-2">
-              <BarChart2 size={32} className="text-gray-300" />
-              <p>Activity chart placeholder</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {cards.map((card) => (
+          <div key={card.label} className="glass-card p-5 flex items-center gap-4">
+            <div className={`p-3 rounded-xl ${card.bg}`}>
+              <card.icon size={22} className={card.color} />
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="min-h-[300px]">
-          <CardHeader>
-            <CardTitle>System Health</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-gray-500 flex items-center justify-center h-48">
-            <div className="flex flex-col items-center gap-2">
-              <MonitorPlay size={32} className="text-gray-300" />
-              <p>All services are operational</p>
+            <div>
+              <p className="text-slate-400 text-sm">{card.label}</p>
+              <p className="text-2xl font-bold text-white">{card.value}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
     </div>
   );
-};
+}
