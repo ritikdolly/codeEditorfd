@@ -1,140 +1,49 @@
-import axios from "axios";
+import axios from 'axios';
 
-// Create an Axios instance with base URL configuration
+const BASE_URL = 'http://localhost:8080/api/v1';
+
 export const api = axios.create({
-  baseURL: "http://localhost:8080/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Mock interceptor for adding authentication (if needed later)
+// Attach JWT to every request
 api.interceptors.request.use((config) => {
-  // We can attach a mock or real User-Id header if needed by the backend
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
-// --- User Module API ---
-export const userService = {
-  createUser: async (userData) => {
-    const res = await api.post("/users", userData);
-    return res.data;
-  },
-  getAllUsers: async () => {
-    const res = await api.get("/users");
-    return res.data;
-  },
-  getUserById: async (id) => {
-    const res = await api.get(`/users/${id}`);
-    return res.data;
-  },
-  updateUser: async (id, userData) => {
-    const res = await api.put(`/users/${id}`, userData);
-    return res.data;
-  },
-  deleteUser: async (id) => {
-    const res = await api.delete(`/users/${id}`);
-    return res.data;
-  },
+// --- Auth API ---
+export const authService = {
+  register: (data) => api.post('/auth/register', data).then(r => r.data),
+  login: (data) => api.post('/auth/login', data).then(r => r.data),
 };
 
-// --- Question Module API ---
-export const questionService = {
-  createQuestion: async (questionData) => {
-    const res = await api.post("/questions", questionData);
-    return res.data;
-  },
-  getAllQuestions: async () => {
-    const res = await api.get("/questions");
-    return res.data;
-  },
-  getQuestionById: async (id) => {
-    const res = await api.get(`/questions/${id}`);
-    return res.data;
-  },
-  updateQuestion: async (id, questionData) => {
-    const res = await api.put(`/questions/${id}`, questionData);
-    return res.data;
-  },
-  deleteQuestion: async (id) => {
-    const res = await api.delete(`/questions/${id}`);
-    return res.data;
-  },
+// --- Admin API ---
+export const adminService = {
+  getDashboard: () => api.get('/admin/dashboard').then(r => r.data),
+  getAllUsers: () => api.get('/admin/users').then(r => r.data),
+  getTeachers: () => api.get('/admin/teachers').then(r => r.data),
+  getStudents: () => api.get('/admin/students').then(r => r.data),
 };
 
-// --- Test Case Module API ---
-export const testCaseService = {
-  createTestCase: async (testCaseData) => {
-    // Expecting testCaseData to contain { question: { id: "..." }, inputData: "...", ... }
-    const res = await api.post("/testcases", testCaseData);
-    return res.data;
-  },
-  getTestCasesByQuestion: async (questionId) => {
-    const res = await api.get(`/questions/${questionId}/testcases`);
-    return res.data;
-  },
-  deleteTestCase: async (id) => {
-    const res = await api.delete(`/testcases/${id}`);
-    return res.data;
-  },
+// --- Teacher API ---
+export const teacherService = {
+  getQuestions: () => api.get('/teacher/questions').then(r => r.data),
+  createQuestion: (data) => api.post('/teacher/questions', data).then(r => r.data),
+  getTests: () => api.get('/teacher/tests').then(r => r.data),
+  createTest: (data) => api.post('/teacher/tests', data).then(r => r.data),
+  getTestQuestions: (testId) => api.get(`/teacher/tests/${testId}/questions`).then(r => r.data),
+  getTestResults: (testId) => api.get(`/teacher/tests/${testId}/results`).then(r => r.data),
 };
 
-// --- Test Module API ---
-export const testService = {
-  createTest: async (teacherId, testData) => {
-    const res = await api.post("/tests", testData, {
-      headers: { "User-Id": teacherId },
-    });
-    return res.data;
-  },
-  getAllTests: async () => {
-    const res = await api.get("/tests");
-    return res.data;
-  },
-  getTestById: async (id) => {
-    const res = await api.get(`/tests/${id}`);
-    return res.data;
-  },
-  deleteTest: async (id) => {
-    const res = await api.delete(`/tests/${id}`);
-    return res.data;
-  },
-  mapQuestionsToTest: async (testId, questionIds) => {
-    const res = await api.post(`/tests/${testId}/questions`, { questionIds });
-    return res.data;
-  },
-  joinTest: async (testId, studentId) => {
-    const res = await api.post(`/tests/${testId}/join`, { studentId });
-    return res.data;
-  },
-};
-
-// --- Code Execution API ---
-export const executionService = {
-  runCode: async (questionId, language, code) => {
-    const res = await api.post("/code/run", { questionId, language, code });
-    return res.data;
-  },
-};
-
-// --- Code Submission API ---
-export const submissionService = {
-  submitCode: async ({ studentId, questionId, language, code, testId }) => {
-    const res = await api.post("/submissions", {
-      studentId,
-      questionId,
-      language,
-      code,
-      testId,
-    });
-    return res.data;
-  },
-};
-
-// --- Result Module API ---
-export const resultService = {
-  getTestResults: async (testId) => {
-    const res = await api.get(`/tests/${testId}/results`);
-    return res.data;
-  },
+// --- Student API ---
+export const studentService = {
+  getTest: (testId) => api.get(`/student/tests/${testId}`).then(r => r.data),
+  getTestQuestions: (testId) => api.get(`/student/tests/${testId}/questions`).then(r => r.data),
+  runCode: (data) => api.post('/student/code/run', data).then(r => r.data),
+  submitCode: (data) => api.post('/student/submit', data).then(r => r.data),
 };

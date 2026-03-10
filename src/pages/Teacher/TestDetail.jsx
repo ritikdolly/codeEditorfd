@@ -1,0 +1,227 @@
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { teacherService } from '../../services/api';
+import QRCode from 'react-qr-code';
+import { Clock, Copy, QrCode, CheckCircle2, BookOpen, Download, UserCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const difficultyColor = { EASY: 'badge-green', MEDIUM: 'text-yellow-400 bg-yellow-500/10', HARD: 'badge-red' };
+
+export function TestDetail() {
+  const { id } = useParams();
+  const [test, setTest] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [results, setResults] = useState([]);
+  const testLink = `${window.location.origin}/student/test/${id}`;
+
+  useEffect(() => {
+    teacherService.getTests()
+      .then(tests => {
+        const found = tests.find(t => t.id === id);
+        setTest(found || null);
+      })
+      .catch(console.error);
+
+    teacherService.getTestQuestions(id)
+      .then(setQuestions)
+      .catch(err => toast.error('Could not load test questions'));
+
+    teacherService.getTestResults(id)
+      .then(setResults)
+      .catch(err => console.error("Could not load results", err));
+  }, [id]);
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(testLink);
+    toast.success('Test link copied!');
+  };
+
+  const downloadResultsCSV = () => {
+    if (!results.length) {
+      toast.error("No results to download");
+      return;
+    }
+    const headers = ['Student Name', 'Email', 'Question', 'Score', 'Accuracy (%)', 'Status', 'Submitted At'];
+    const rows = results.map(r => [
+      `"${r.studentName}"`, 
+      `"${r.studentEmail}"`, 
+      `"${r.questionTitle}"`, 
+      r.score?.toFixed(1) || "0", 
+      r.accuracy?.toFixed(1) || "0", 
+      r.status, 
+      `"${new Date(r.submissionTime).toLocaleString()}"`
+    ].join(','));
+    
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${test.name.replace(/\s+/g, '_')}_Results.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    toast.success("Download started");
+  };
+
+  if (!test) return (
+    <div className="p-6 flex items-center justify-center min-h-[400px]">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+    </div>
+  );
+
+  const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 0), 0);
+
+  return (
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white">{test.name}</h1>
+        <p className="text-slate-400 mt-1">Test configuration, QR Code, and Student Results</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column: Test Info & QR Code */}
+        <div className="space-y-6 col-span-1">
+          {/* QR Code Card */}
+          <div className="glass-card p-6 flex flex-col items-center gap-5">
+            <div className="flex items-center gap-2">
+              <QrCode size={18} className="text-purple-400" />
+              <h2 className="text-base font-semibold text-white">Share with Students</h2>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl shadow-xl">
+              <QRCode value={testLink} size={150} />
+            </div>
+
+            <p className="text-slate-400 text-sm text-center">Scan QR or share link</p>
+
+            <div className="w-full flex items-center gap-2">
+              <div className="flex-1 bg-slate-800/80 border border-slate-700/50 rounded-xl px-3 py-2 text-slate-300 text-xs font-mono truncate">
+                {testLink}
+              </div>
+              <button onClick={copyLink} className="btn-secondary px-3 py-2 shrink-0" title="Copy link">
+                <Copy size={14} />
+              </button>
+            </div>
+          </div>
+
+          {/* Test Info */}
+          <div className="glass-card p-5 grid grid-cols-2 gap-4">
+            <div className="col-span-2 flex items-center gap-2 pb-2 border-b border-slate-700/50">
+              <Clock size={16} className="text-purple-400" />
+              <span className="text-white font-medium text-sm">Test Details</span>
+            </div>
+            <div>
+              <p className="text-slate-400 text-xs">Duration</p>
+              <p className="text-white text-sm font-medium mt-0.5">{test.duration} mins</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-xs">Total Marks</p>
+              <p className="text-white text-sm font-medium mt-0.5">{totalMarks}</p>
+            </div>
+            <div className="col-span-2">
+              <p className="text-slate-400 text-xs">Status</p>
+              <p className="text-white text-sm font-medium mt-0.5">{test.status || 'SCHEDULED'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Questions & Results */}
+        <div className="col-span-2 space-y-6">
+          
+          {/* Questions */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <BookOpen size={18} className="text-purple-400" />
+              <h2 className="text-lg font-semibold text-white">Questions Assortment</h2>
+            </div>
+            {questions.length === 0 ? (
+              <div className="glass-card p-6 text-center text-slate-500 text-sm">No questions added yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {questions.map((q, i) => (
+                  <div key={q.id} className="glass-card p-3 flex items-start gap-3">
+                    <span className="w-6 h-6 rounded-md bg-purple-600/20 flex items-center justify-center text-purple-300 text-xs font-bold shrink-0">
+                      {i + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-medium text-sm truncate">{q.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-slate-400 text-xs">{q.marks} marks</span>
+                        <span className={`badge ${difficultyColor[q.difficulty] || 'badge-blue'} text-[10px] px-1.5 py-0`}>
+                          {q.difficulty}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Results Table */}
+          <div className="space-y-3 pt-4 border-t border-slate-700/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <UserCircle size={18} className="text-emerald-400" />
+                <h2 className="text-lg font-semibold text-white">Student Submissions</h2>
+                <span className="badge badge-purple ml-2">{results.length}</span>
+              </div>
+              <button onClick={downloadResultsCSV} disabled={results.length === 0}
+                className="btn-primary flex items-center gap-2 py-1.5 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20">
+                <Download size={14} /> Export CSV
+              </button>
+            </div>
+
+            <div className="glass-card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-slate-400 uppercase bg-slate-800/40 border-b border-slate-700/50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Student</th>
+                      <th className="px-4 py-3 font-medium">Question</th>
+                      <th className="px-4 py-3 font-medium">Score</th>
+                      <th className="px-4 py-3 font-medium">Accuracy</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                          No student submissions recorded yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      results.map((r, idx) => (
+                        <tr key={idx} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                          <td className="px-4 py-3">
+                            <p className="text-white font-medium truncate max-w-[120px]">{r.studentName}</p>
+                            <p className="text-slate-400 text-xs truncate max-w-[120px]">{r.studentEmail}</p>
+                          </td>
+                          <td className="px-4 py-3 text-slate-300 truncate max-w-[150px]">{r.questionTitle}</td>
+                          <td className="px-4 py-3 font-mono text-white">{r.score?.toFixed(1)}</td>
+                          <td className="px-4 py-3 font-mono text-slate-300">{r.accuracy?.toFixed(1)}%</td>
+                          <td className="px-4 py-3">
+                            <span className={`badge ${r.status === 'Passed' ? 'badge-green' : 'badge-red'} text-xs`}>
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div className="pt-4 border-t border-slate-700/50">
+        <Link to="/teacher" className="btn-secondary text-sm">← Back to Dashboard</Link>
+      </div>
+    </div>
+  );
+}

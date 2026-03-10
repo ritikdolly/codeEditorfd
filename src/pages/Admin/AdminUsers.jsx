@@ -1,77 +1,79 @@
-import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/Table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/Card";
-import { Search, MoreHorizontal } from "lucide-react";
-import { Input } from "../../components/ui/Input";
-import { Button } from "../../components/ui/Button";
+import { useEffect, useState } from 'react';
+import { adminService } from '../../services/api';
+import { User, Crown, GraduationCap } from 'lucide-react';
 
-const MOCK_USERS = [
-  { id: 1, name: "Admin Setup", email: "admin@codearena.com", role: "Admin", joined: "Oct 24, 2023", status: "Active" },
-  { id: 2, name: "Prof. Alan Turing", email: "alan@university.edu", role: "Teacher", joined: "Jan 12, 2024", status: "Active" },
-  { id: 3, name: "Ada Lovelace", email: "ada@student.edu", role: "Student", joined: "Jan 15, 2024", status: "Active" },
-  { id: 4, name: "Grace Hopper", email: "grace@student.edu", role: "Student", joined: "Feb 02, 2024", status: "Suspended" },
-];
+const RoleBadge = ({ role }) => {
+  const styles = {
+    ADMIN: 'badge-red',
+    TEACHER: 'badge-purple',
+    STUDENT: 'badge-blue',
+  };
+  return <span className={`badge ${styles[role] || 'badge-blue'}`}>{role}</span>;
+};
 
-export const AdminUsers = () => {
+export function AdminUsers() {
+  const [users, setUsers] = useState([]);
+  const [filter, setFilter] = useState('ALL');
+
+  useEffect(() => {
+    adminService.getAllUsers().then(setUsers).catch(console.error);
+  }, []);
+
+  const filtered = filter === 'ALL' ? users : users.filter(u => u.role === filter);
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-end">
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">User Management</h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            View and manage all platform administrators, teachers, and students.
-          </p>
+          <h1 className="text-2xl font-bold text-white">User Management</h1>
+          <p className="text-slate-400 mt-1">{users.length} total users</p>
         </div>
-        <Button>Add New User</Button>
+        <div className="flex gap-2 role-filter-wrap">
+          {['ALL', 'ADMIN', 'TEACHER', 'STUDENT'].map(role => (
+            <button key={role} onClick={() => setFilter(role)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${filter === role ? 'bg-purple-600 text-white' : 'bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'}`}>
+              {role}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Card className="mt-6">
-        <CardHeader className="flex flex-row justify-between items-center border-b dark:border-gray-800 pb-4">
-          <div className="flex gap-4">
-            <div className="relative w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input className="pl-9 h-9" placeholder="Search users by name or email..." />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {MOCK_USERS.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell className="capitalize">{user.role}</TableCell>
-                  <TableCell className="text-gray-500">{user.joined}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.status === "Active" ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400" :
-                      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    }`}>
-                      {user.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal size={16} />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+      <div className="glass-card overflow-hidden">
+        <div className="table-responsive">
+          <table className="w-full" style={{ minWidth: 560 }}>
+            <thead>
+              <tr className="border-b border-slate-700/50">
+                <th className="text-left p-4 text-slate-400 font-medium">User</th>
+                <th className="text-left p-4 text-slate-400 font-medium">Email</th>
+                <th className="text-left p-4 text-slate-400 font-medium">Role</th>
+                <th className="text-left p-4 text-slate-400 font-medium">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((user) => (
+                <tr key={user.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-600/30 flex items-center justify-center text-purple-300 font-bold text-sm flex-shrink-0">
+                        {user.name?.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-white font-medium whitespace-nowrap">{user.name}</span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-slate-300 whitespace-nowrap">{user.email}</td>
+                  <td className="p-4"><RoleBadge role={user.role} /></td>
+                  <td className="p-4 text-slate-400 text-sm whitespace-nowrap">
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            </tbody>
+          </table>
+        </div>
+        {filtered.length === 0 && (
+          <div className="text-center py-12 text-slate-500">No users found</div>
+        )}
+      </div>
     </div>
   );
-};
+}
