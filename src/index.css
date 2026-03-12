@@ -166,9 +166,10 @@ select.field-input option { background: #1e1b4b; }
   display: flex;
   flex: 1;
   overflow: hidden;
+  height: 0; /* Forces flex child to respect parent height */
 }
+/* Desktop panels managed by react-resizable-panels */
 .livetest-problem-panel {
-  width: 40%;
   border-right: 1px solid rgba(255,255,255,0.08);
   overflow-y: auto;
   padding: 20px;
@@ -178,6 +179,13 @@ select.field-input option { background: #1e1b4b; }
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+/* Ensure the PanelGroup fills its container height */
+[data-panel-group] {
+  height: 100% !important;
+}
+[data-panel] {
+  overflow: hidden;
 }
 
 /* Mobile tab switcher for LiveTest */
@@ -204,6 +212,58 @@ select.field-input option { background: #1e1b4b; }
   background: rgba(168,85,247,0.06);
 }
 
+/* Panel Headers */
+.panel-header {
+  @apply flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-slate-700/50 backdrop-blur-sm sticky top-0 z-10;
+}
+
+.panel-title {
+  @apply text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2;
+}
+
+/* Improved Resize Handle */
+.resize-handle-horizontal {
+  @apply w-1.5 bg-slate-900 transition-colors cursor-col-resize active:bg-purple-500/30 hover:bg-purple-500/20 relative flex items-center justify-center;
+}
+
+.resize-handle-vertical {
+  @apply h-1.5 bg-slate-900 transition-colors cursor-row-resize active:bg-purple-500/30 hover:bg-purple-500/20 relative flex items-center justify-center;
+}
+
+.resize-dot {
+  @apply bg-slate-700 rounded-full transition-colors;
+}
+
+.resize-handle-horizontal:hover .resize-dot, .resize-handle-horizontal:active .resize-dot {
+  @apply bg-purple-500;
+}
+
+.resize-handle-vertical:hover .resize-dot, .resize-handle-vertical:active .resize-dot {
+  @apply bg-purple-500;
+}
+
+.panel-content-scroll {
+  @apply flex-1 overflow-y-auto p-5 custom-scrollbar;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-700/50 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-600/50;
+}
+
+
 /* ─── Responsive breakpoints ─── */
 @media (max-width: 1024px) {
   .livetest-problem-panel { width: 45%; }
@@ -222,6 +282,8 @@ select.field-input option { background: #1e1b4b; }
   .mobile-topbar { display: flex; }
 
   /* LiveTest stacks vertically */
+
+  
   .livetest-body { flex-direction: column; overflow: visible; }
   .livetest-problem-panel {
     width: 100%;
@@ -249,4 +311,17 @@ select.field-input option { background: #1e1b4b; }
 
   /* Role filter buttons wrap nicely */
   .role-filter-wrap { flex-wrap: wrap; }
+}
+
+.livetest-problem-panel {
+  scrollbar-width: thin;
+}
+
+.livetest-problem-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.livetest-problem-panel::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 10px;
 }
