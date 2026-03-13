@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { teacherService } from '../../services/api';
 import QRCode from 'react-qr-code';
-import { Clock, Copy, QrCode, CheckCircle2, BookOpen, Download, UserCircle } from 'lucide-react';
+import { Clock, Copy, QrCode, BookOpen, Download, UserCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const difficultyColor = { EASY: 'badge-green', MEDIUM: 'text-yellow-400 bg-yellow-500/10', HARD: 'badge-red' };
@@ -11,7 +11,13 @@ export function TestDetail() {
   const { id } = useParams();
   const [test, setTest] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState([]); // This will now hold StudentTestResultDto
+  
+  // States for expandable rows
+  const [expandedStudentId, setExpandedStudentId] = useState(null);
+  const [studentDetails, setStudentDetails] = useState({}); // { studentId: [SubmissionReportDto] }
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
   const testLink = `${window.location.origin}/student/test/${id}`;
 
   useEffect(() => {
@@ -36,27 +42,48 @@ export function TestDetail() {
     toast.success('Test link copied!');
   };
 
+  const toggleStudentExpansion = async (studentId) => {
+    if (expandedStudentId === studentId) {
+        setExpandedStudentId(null);
+        return;
+    }
+    
+    setExpandedStudentId(studentId);
+    
+    // Fetch details if we don't already have them
+    if (!studentDetails[studentId]) {
+      setLoadingDetails(true);
+      try {
+        const details = await teacherService.getStudentTestDetails(id, studentId);
+        setStudentDetails(prev => ({ ...prev, [studentId]: details }));
+      } catch (err) {
+        toast.error('Failed to load student question details');
+        console.error(err);
+      } finally {
+        setLoadingDetails(false);
+      }
+    }
+  };
+
   const downloadResultsCSV = () => {
     if (!results.length) {
       toast.error("No results to download");
       return;
     }
-    const headers = ['Student Name', 'Email', 'Question', 'Score', 'Accuracy (%)', 'Status', 'Submitted At'];
+    const headers = ['Student Name', 'Email', 'Total Score', 'Overall Accuracy (%)', 'Status'];
     const rows = results.map(r => [
       `"${r.studentName}"`, 
       `"${r.studentEmail}"`, 
-      `"${r.questionTitle}"`, 
-      r.score?.toFixed(1) || "0", 
-      r.accuracy?.toFixed(1) || "0", 
-      r.status, 
-      `"${new Date(r.submissionTime).toLocaleString()}"`
+      r.totalScore?.toFixed(1) || "0", 
+      r.overallAccuracy?.toFixed(1) || "0", 
+      r.status
     ].join(','));
     
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${test.name.replace(/\s+/g, '_')}_Results.csv`);
+    link.setAttribute("download", `${test.name.replace(/\s+/g, '_')}_Aggregated_Results.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -178,10 +205,10 @@ export function TestDetail() {
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-slate-400 uppercase bg-slate-800/40 border-b border-slate-700/50">
                     <tr>
+                      <th className="px-4 py-3 font-medium w-10"></th>
                       <th className="px-4 py-3 font-medium">Student</th>
-                      <th className="px-4 py-3 font-medium">Question</th>
-                      <th className="px-4 py-3 font-medium">Score</th>
-                      <th className="px-4 py-3 font-medium">Accuracy</th>
+                      <th className="px-4 py-3 font-medium">Total Score</th>
+                      <th className="px-4 py-3 font-medium">Overall Accuracy</th>
                       <th className="px-4 py-3 font-medium">Status</th>
                     </tr>
                   </thead>
@@ -194,20 +221,80 @@ export function TestDetail() {
                       </tr>
                     ) : (
                       results.map((r, idx) => (
-                        <tr key={idx} className="border-b border-slate-700/30 hover:bg-slate-700/20">
-                          <td className="px-4 py-3">
-                            <p className="text-white font-medium truncate max-w-[120px]">{r.studentName}</p>
-                            <p className="text-slate-400 text-xs truncate max-w-[120px]">{r.studentEmail}</p>
-                          </td>
-                          <td className="px-4 py-3 text-slate-300 truncate max-w-[150px]">{r.questionTitle}</td>
-                          <td className="px-4 py-3 font-mono text-white">{r.score?.toFixed(1)}</td>
-                          <td className="px-4 py-3 font-mono text-slate-300">{r.accuracy?.toFixed(1)}%</td>
-                          <td className="px-4 py-3">
-                            <span className={`badge ${r.status === 'Passed' ? 'badge-green' : 'badge-red'} text-xs`}>
-                              {r.status}
-                            </span>
-                          </td>
-                        </tr>
+                        <React.Fragment key={r.studentId}>
+                            <tr 
+                                className={`border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer transition-colors ${expandedStudentId === r.studentId ? 'bg-slate-700/10' : ''}`}
+                                onClick={() => toggleStudentExpansion(r.studentId)}
+                            >
+                              <td className="px-4 py-3 text-slate-400">
+                                {expandedStudentId === r.studentId ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                              </td>
+                              <td className="px-4 py-3">
+                                <p className="text-white font-medium truncate max-w-[150px]">{r.studentName}</p>
+                                <p className="text-slate-400 text-xs truncate max-w-[150px]">{r.studentEmail}</p>
+                              </td>
+                              <td className="px-4 py-3 font-mono text-white">
+                                {r.totalScore?.toFixed(1)} <span className="text-slate-500 text-xs">/ {totalMarks}</span>
+                              </td>
+                              <td className="px-4 py-3 font-mono text-slate-300">
+                                {r.overallAccuracy?.toFixed(1)}%
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`badge ${r.status === 'Passed' ? 'badge-green' : 'badge-red'} text-xs`}>
+                                  {r.status}
+                                </span>
+                              </td>
+                            </tr>
+                            
+                            {/* Expanded Details Row */}
+                            {expandedStudentId === r.studentId && (
+                              <tr className="bg-slate-900/50 border-b border-slate-700/30">
+                                <td colSpan="5" className="p-0">
+                                    <div className="p-4 pl-12 border-l-2 border-purple-500/50">
+                                        <h4 className="text-xs font-semibold text-slate-400 uppercase mb-3">Question Breakdown</h4>
+                                        
+                                        {loadingDetails && !studentDetails[r.studentId] ? (
+                                            <div className="text-sm text-slate-400 flex items-center gap-2">
+                                                <div className="animate-spin h-3 w-3 border-b-2 border-purple-500 rounded-full"></div>
+                                                Loading details...
+                                            </div>
+                                        ) : !studentDetails[r.studentId] || studentDetails[r.studentId].length === 0 ? (
+                                            <div className="text-sm text-slate-500">No question details found.</div>
+                                        ) : (
+                                            <table className="w-full text-xs text-left">
+                                                <thead className="text-slate-500 border-b border-slate-700/50">
+                                                    <tr>
+                                                        <th className="pb-2 font-medium">Question</th>
+                                                        <th className="pb-2 font-medium">Score</th>
+                                                        <th className="pb-2 font-medium">Accuracy</th>
+                                                        <th className="pb-2 font-medium">Status</th>
+                                                        <th className="pb-2 font-medium">Submitted</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-800/50">
+                                                    {studentDetails[r.studentId].map(detail => (
+                                                        <tr key={detail.submissionId} className="hover:bg-slate-800/30">
+                                                            <td className="py-2 text-slate-300">{detail.questionTitle}</td>
+                                                            <td className="py-2 font-mono text-slate-300">{detail.score?.toFixed(1)}</td>
+                                                            <td className="py-2 font-mono text-slate-400">{detail.accuracy}%</td>
+                                                            <td className="py-2">
+                                                                <span className={detail.status === 'Passed' ? 'text-emerald-400' : 'text-rose-400'}>
+                                                                    {detail.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-2 text-slate-500">
+                                                                {new Date(detail.submissionTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        )}
+                                    </div>
+                                </td>
+                              </tr>
+                            )}
+                        </React.Fragment>
                       ))
                     )}
                   </tbody>

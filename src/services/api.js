@@ -38,6 +38,7 @@ export const teacherService = {
   createTest: (data) => api.post('/teacher/tests', data).then(r => r.data),
   getTestQuestions: (testId) => api.get(`/teacher/tests/${testId}/questions`).then(r => r.data),
   getTestResults: (testId) => api.get(`/teacher/tests/${testId}/results`).then(r => r.data),
+  getStudentTestDetails: (testId, studentId) => api.get(`/teacher/tests/${testId}/students/${studentId}/results`).then(r => r.data),
 };
 
 // --- Student API ---
@@ -46,4 +47,8 @@ export const studentService = {
   getTestQuestions: (testId) => api.get(`/student/tests/${testId}/questions`).then(r => r.data),
   runCode: (data) => api.post('/student/code/run', data).then(r => r.data),
   submitCode: (data) => api.post('/student/submit', data).then(r => r.data),
+  startAttempt: (testId) => api.post(`/student/attempts/${testId}/start`).then(r => r.data),
+  submitAttempt: (testId) => api.post(`/student/attempts/${testId}/submit`).then(r => r.data),
+  saveDraft: (testId, questionId, code) => api.put(`/student/attempts/${testId}/questions/${questionId}/draft`, { code }).then(r => r.data),
+  getDraft: (testId, questionId) => api.get(`/student/attempts/${testId}/questions/${questionId}/draft`).then(r => r.data),
 };
