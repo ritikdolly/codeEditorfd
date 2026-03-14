@@ -90,6 +90,40 @@ export function TestDetail() {
     toast.success("Download started");
   };
 
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    if (!test || !test.startTime || !test.endTime) return;
+
+    const calculateTime = () => {
+      const now = new Date();
+      const start = new Date(test.startTime);
+      const end = new Date(test.endTime);
+
+      if (now < start) {
+        const diff = start - now;
+        setTimeLeft(`Starts in: ${formatDuration(diff)}`);
+      } else if (now < end) {
+        const diff = end - now;
+        setTimeLeft(`Remaining: ${formatDuration(diff)}`);
+      } else {
+        setTimeLeft('Test Ended');
+      }
+    };
+
+    calculateTime();
+    const timer = setInterval(calculateTime, 1000);
+    return () => clearInterval(timer);
+  }, [test]);
+
+  const formatDuration = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
+  };
+
   if (!test) return (
     <div className="p-6 flex items-center justify-center min-h-[400px]">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
@@ -146,10 +180,29 @@ export function TestDetail() {
               <p className="text-slate-400 text-xs">Total Marks</p>
               <p className="text-white text-sm font-medium mt-0.5">{totalMarks}</p>
             </div>
+            <div>
+              <p className="text-slate-400 text-xs">Start Time</p>
+              <p className="text-white text-sm font-medium mt-0.5">
+                {test.startTime ? new Date(test.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-xs">End Time</p>
+              <p className="text-white text-sm font-medium mt-0.5">
+                {test.endTime ? new Date(test.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}
+              </p>
+            </div>
             <div className="col-span-2">
               <p className="text-slate-400 text-xs">Status</p>
               <p className="text-white text-sm font-medium mt-0.5">{test.status || 'SCHEDULED'}</p>
             </div>
+
+            {timeLeft && (
+              <div className="col-span-2 mt-2 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 text-center">
+                <p className="text-purple-400 text-xs font-semibold uppercase tracking-wider">Live Status</p>
+                <p className="text-white text-lg font-bold font-mono">{timeLeft}</p>
+              </div>
+            )}
           </div>
         </div>
 

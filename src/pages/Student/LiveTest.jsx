@@ -160,6 +160,7 @@ export function LiveTest() {
       const res = await studentService.runCode({
         code: activeCode,
         language: "java",
+        questionId: activeQuestion.id,
         sampleTestCases:
           sampleTestCases.length > 0 ? sampleTestCases : undefined,
         input: sampleTestCases.length === 0 ? "" : undefined,
