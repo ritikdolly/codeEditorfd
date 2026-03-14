@@ -18,6 +18,9 @@ export function CreateQuestion() {
     inputFormat: '',
     outputFormat: '',
     constraints: '',
+    prefixCode: '',
+    suffixCode: '',
+    templateCode: '',
   });
   const [testCases, setTestCases] = useState([{ ...emptyTestCase }]);
 
@@ -106,6 +109,37 @@ export function CreateQuestion() {
             <label className="field-label">Constraints</label>
             <textarea className="field-input" placeholder="e.g. 1 ≤ n ≤ 10^5"
               value={form.constraints} onChange={e => setForm({ ...form, constraints: e.target.value })} />
+          </div>
+        </div>
+
+        {/* New Code Template Section */}
+        <div className="glass-card p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-white border-b border-slate-700/50 pb-3">Code Template & Sandbox</h2>
+          <p className="text-sm text-slate-400">
+            Define the code that will be wrapped around the student's solution.
+          </p>
+
+          <div>
+            <label className="field-label">Full Template Code (Optional)</label>
+            <textarea className="field-input min-h-[150px] font-mono text-sm" 
+              placeholder="Full starter code with /* START_EDITABLE */ and /* END_EDITABLE */ markers..."
+              value={form.templateCode} onChange={e => setForm({ ...form, templateCode: e.target.value })} />
+            <p className="text-xs text-slate-500 mt-1">If provided, this will be used as the initial code for students.</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 grid-cols-2-resp">
+            <div>
+              <label className="field-label">Prefix Code (Hidden)</label>
+              <textarea className="field-input min-h-[100px] font-mono text-sm" 
+                placeholder="Imports, Class declaration, etc."
+                value={form.prefixCode} onChange={e => setForm({ ...form, prefixCode: e.target.value })} />
+            </div>
+            <div>
+              <label className="field-label">Suffix Code (Hidden)</label>
+              <textarea className="field-input min-h-[100px] font-mono text-sm" 
+                placeholder="Closing brackets, helper methods, etc."
+                value={form.suffixCode} onChange={e => setForm({ ...form, suffixCode: e.target.value })} />
+            </div>
           </div>
         </div>
 
