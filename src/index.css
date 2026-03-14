@@ -1,11 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
 
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 5;
+  padding: 5;
+}
 
 :root {
   --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
@@ -212,7 +213,14 @@ select.field-input option { background: #1e1b4b; }
   background: rgba(168,85,247,0.06);
 }
 
+
+
+
 /* Panel Headers */
+.panel-content-scroll {
+  @apply flex-1 overflow-y-auto p-5;
+}
+
 .panel-header {
   @apply flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-slate-700/50 backdrop-blur-sm sticky top-0 z-10;
 }
@@ -240,10 +248,6 @@ select.field-input option { background: #1e1b4b; }
 
 .resize-handle-vertical:hover .resize-dot, .resize-handle-vertical:active .resize-dot {
   @apply bg-purple-500;
-}
-
-.panel-content-scroll {
-  @apply flex-1 overflow-y-auto p-5 custom-scrollbar;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
