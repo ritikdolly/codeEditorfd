@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/common/Navbar';
-import api from '../../services/api';
+import { api } from '../../services/api';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -17,7 +17,7 @@ export default function JoinTest() {
     api.get(`/student/tests/join/${shareLink}`)
        .then(res => setTestDetails(res.data))
        .catch(err => {
-           toast.error("Invalid test link or test not found");
+           toast.error("Invalid test link or test not found or you are not login");
            navigate('/');
        })
        .finally(() => setLoading(false));

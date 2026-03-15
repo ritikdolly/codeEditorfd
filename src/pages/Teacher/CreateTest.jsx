@@ -15,6 +15,19 @@ export function CreateTest() {
     teacherService.getQuestions().then(setQuestions).catch(console.error);
   }, []);
 
+  useEffect(() => {
+    if (form.startTime && form.duration) {
+      const start = new Date(form.startTime);
+      const end = new Date(start.getTime() + parseInt(form.duration) * 60000);
+      
+      // Calculate local ISO string for datetime-local input
+      const tzOffset = end.getTimezoneOffset() * 60000;
+      const localEnd = new Date(end.getTime() - tzOffset).toISOString().slice(0, 16);
+      
+      setForm(prev => ({ ...prev, endTime: localEnd }));
+    }
+  }, [form.startTime, form.duration]);
+
   const toggleQuestion = (id) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };

@@ -8,16 +8,29 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
     const isFirstLoad = useRef(true);
     const [isFetchingLocal, setIsFetchingLocal] = useState(true);
 
+    const editorRef = useRef(null);
+    const monacoRef = useRef(null);
+
     // Fetch initial draft
     useEffect(() => {
         const fetchDraft = async () => {
             if (!code || code === DEFAULT_CODE || code === "") {
                 try {
+                    const questionRes = await studentService.getTestQuestions(testId);
+                    const q = questionRes.find(item => item.id === questionId);
+                    
+                    let initialCode = DEFAULT_CODE;
+                    if (q && q.templateCode) {
+                        initialCode = q.templateCode;
+                    } else if (q && (q.prefixCode || q.suffixCode)) {
+                        initialCode = (q.prefixCode || "") + "\n/* START_EDITABLE */\n\n/* END_EDITABLE */\n" + (q.suffixCode || "");
+                    }
+
                     const res = await studentService.getDraft(testId, questionId);
                     if (res?.code && res.code.trim() !== '') {
                         setCodeMap(prev => ({ ...prev, [questionId]: res.code }));
-                    } else if (!code) {
-                        setCodeMap(prev => ({ ...prev, [questionId]: DEFAULT_CODE }));
+                    } else {
+                        setCodeMap(prev => ({ ...prev, [questionId]: initialCode }));
                     }
                 } catch (err) {
                     console.error("Could not load draft", err);
@@ -28,6 +41,66 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
         };
         fetchDraft();
     }, [testId, questionId]);
+
+    const handleEditorMount = (editor, monaco) => {
+        editorRef.current = editor;
+        monacoRef.current = monaco;
+
+        // Restriction logic
+        editor.onKeyDown((e) => {
+            const model = editor.getModel();
+            const fullText = model.getValue();
+            
+            const startIndex = fullText.indexOf("/* START_EDITABLE */");
+            const endIndex = fullText.indexOf("/* END_EDITABLE */");
+            
+            if (startIndex !== -1 && endIndex !== -1) {
+                const position = editor.getPosition();
+                
+                // Position of markers
+                const startPos = model.getPositionAt(startIndex + "/* START_EDITABLE */".length);
+                const endPos = model.getPositionAt(endIndex);
+                
+                // Allow navigation keys always
+                const isNavKey = [
+                    monaco.KeyCode.LeftArrow, monaco.KeyCode.RightArrow, 
+                    monaco.KeyCode.UpArrow, monaco.KeyCode.DownArrow,
+                    monaco.KeyCode.PageUp, monaco.KeyCode.PageDown,
+                    monaco.KeyCode.Home, monaco.KeyCode.End
+                ].includes(e.keyCode);
+
+                if (isNavKey) return;
+
+                // Check if cursor or selection is outside editable range
+                const selection = editor.getSelection();
+                
+                const isOutside = (pos) => {
+                    if (pos.lineNumber < startPos.lineNumber) return true;
+                    if (pos.lineNumber === startPos.lineNumber && pos.column <= startPos.column) return true;
+                    if (pos.lineNumber > endPos.lineNumber) return true;
+                    if (pos.lineNumber === endPos.lineNumber && pos.column > endPos.column) return true;
+                    return false;
+                };
+
+                if (isOutside(selection.getStartPosition()) || isOutside(selection.getEndPosition())) {
+                    // Block edit keys
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        });
+
+        // Prevention for backspace deleting markers if cursor is at the very start of editable section
+        editor.onDidChangeModelContent((e) => {
+            const model = editor.getModel();
+            const fullText = model.getValue();
+            if (!fullText.includes("/* START_EDITABLE */") || !fullText.includes("/* END_EDITABLE */")) {
+                // If markers were deleted, try to restore or undo? 
+                // For simplicity, we just won't let it happen via onKeyDown, 
+                // but this is a secondary safeguard.
+            }
+        });
+    };
 
     // Autosave periodic draft
     useEffect(() => {
@@ -55,6 +128,7 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
             defaultLanguage="java"
             value={code}
             onChange={(val) => onChange(val || "")}
+            onMount={handleEditorMount}
             theme="vs-dark"
             options={{
                 fontSize: 14,
@@ -62,6 +136,7 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
                 scrollBeyondLastLine: false,
                 lineNumbersMinChars: 3,
                 padding: { top: 12 },
+                formatOnPaste: true,
             }}
         />
     );
