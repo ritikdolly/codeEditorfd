@@ -29,7 +29,6 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
-src/services/api.js
 
 # Gemini/Antigravity artifacts
 .gemini

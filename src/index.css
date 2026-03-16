@@ -1,14 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
 
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 5;
+  padding: 5;
+}
 
 :root {
-  --bg-gradient: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  --bg-main: #1e1b4b; /* Replaced gradient with a solid color */
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.08);
   --purple: #a855f7;
@@ -17,7 +17,7 @@
 }
 
 html, body, #root { height: 100%; font-family: 'Inter', sans-serif; }
-body { background: #0f0c29; color: #e2e8f0; }
+body { background: var(--bg-main); color: #e2e8f0; }
 
 /* Glass card */
 .glass-card {
@@ -37,7 +37,7 @@ body { background: #0f0c29; color: #e2e8f0; }
 
 /* Buttons */
 .btn-primary {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--purple-dark); /* Replaced gradient with solid color */
   color: white; padding: 10px 20px; border-radius: 10px;
   font-weight: 600; font-size: 0.875rem; border: none;
   cursor: pointer; transition: all 0.2s;
@@ -46,6 +46,7 @@ body { background: #0f0c29; color: #e2e8f0; }
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  background: var(--purple); /* Added a lighter solid color on hover for feedback */
 }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -71,7 +72,7 @@ body { background: #0f0c29; color: #e2e8f0; }
 .field-input:focus { border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 0 3px rgba(168,85,247,0.1); }
 .field-input::placeholder { color: #475569; }
 textarea.field-input { resize: vertical; }
-select.field-input option { background: #1e1b4b; }
+select.field-input option { background: var(--bg-main); }
 
 /* Badges */
 .badge { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
@@ -89,7 +90,7 @@ select.field-input option { background: #1e1b4b; }
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: var(--bg-gradient);
+  background: var(--bg-main); /* Replaced variable call */
 }
 
 /* Sidebar overlay (mobile) */
@@ -128,7 +129,7 @@ select.field-input option { background: #1e1b4b; }
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background: rgba(15,12,41,0.95);
+  background: rgba(15,12,41,0.95); /* Solid header match */
   border-bottom: 1px solid rgba(255,255,255,0.08);
   position: sticky;
   top: 0;
@@ -166,9 +167,8 @@ select.field-input option { background: #1e1b4b; }
   display: flex;
   flex: 1;
   overflow: hidden;
-  height: 0; /* Forces flex child to respect parent height */
+  height: 0;
 }
-/* Desktop panels managed by react-resizable-panels */
 .livetest-problem-panel {
   border-right: 1px solid rgba(255,255,255,0.08);
   overflow-y: auto;
@@ -180,7 +180,6 @@ select.field-input option { background: #1e1b4b; }
   flex-direction: column;
   min-width: 0;
 }
-/* Ensure the PanelGroup fills its container height */
 [data-panel-group] {
   height: 100% !important;
 }
@@ -213,6 +212,10 @@ select.field-input option { background: #1e1b4b; }
 }
 
 /* Panel Headers */
+.panel-content-scroll {
+  @apply flex-1 overflow-y-auto p-5;
+}
+
 .panel-header {
   @apply flex items-center justify-between px-4 py-2 bg-slate-800/50 border-b border-slate-700/50 backdrop-blur-sm sticky top-0 z-10;
 }
@@ -242,10 +245,6 @@ select.field-input option { background: #1e1b4b; }
   @apply bg-purple-500;
 }
 
-.panel-content-scroll {
-  @apply flex-1 overflow-y-auto p-5 custom-scrollbar;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -263,14 +262,12 @@ select.field-input option { background: #1e1b4b; }
   @apply bg-slate-600/50;
 }
 
-
 /* ─── Responsive breakpoints ─── */
 @media (max-width: 1024px) {
   .livetest-problem-panel { width: 45%; }
 }
 
 @media (max-width: 768px) {
-  /* Sidebar goes off-canvas on mobile */
   .sidebar {
     position: fixed;
     top: 0; left: 0; bottom: 0;
@@ -278,12 +275,8 @@ select.field-input option { background: #1e1b4b; }
   }
   .sidebar.open { transform: translateX(0); }
 
-  /* Show mobile topbar */
   .mobile-topbar { display: flex; }
 
-  /* LiveTest stacks vertically */
-
-  
   .livetest-body { flex-direction: column; overflow: visible; }
   .livetest-problem-panel {
     width: 100%;
@@ -295,21 +288,15 @@ select.field-input option { background: #1e1b4b; }
   .livetest-tabs { display: flex; }
   .livetest-panel-hidden { display: none; }
 
-  /* Auth pages padding */
   .auth-card { padding: 24px 20px !important; }
 
-  /* Form grids */
   .grid-cols-3-resp { grid-template-columns: 1fr !important; }
   .grid-cols-2-resp { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 480px) {
   .livetest-problem-panel { max-height: 40vh; padding: 14px; }
-
-  /* Shrink button text */
   .btn-primary, .btn-secondary { padding: 9px 14px; font-size: 0.8125rem; }
-
-  /* Role filter buttons wrap nicely */
   .role-filter-wrap { flex-wrap: wrap; }
 }
 

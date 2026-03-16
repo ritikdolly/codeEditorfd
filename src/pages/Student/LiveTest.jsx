@@ -172,7 +172,8 @@ export function LiveTest() {
   useEffect(() => {
     if (!test || !user || !isAttemptInProgress) return;
 
-    const client = Stomp.over(() => new SockJS('http://localhost:8080/ws-monitor'));
+    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws-monitor';
+    const client = Stomp.over(() => new SockJS(wsUrl));
     client.debug = () => {}; // Quiet mode
 
     const sendStatus = (status) => {
@@ -203,7 +204,7 @@ export function LiveTest() {
         client.disconnect();
       }
     };
-  }, [id, user, test, isAttemptInProgress, resultsByQuestion.length, questions.length]);
+  }, [id, user, test, isAttemptInProgress, Object.keys(resultsByQuestion).length, questions.length]);
 
   const activeQuestion = questions[activeIdx];
   const activeCode = activeQuestion ? codeMap[activeQuestion.id] || "" : "";
@@ -321,7 +322,8 @@ export function LiveTest() {
       
       // Notify monitor of submission
       try {
-        const socket = new SockJS('http://localhost:8080/ws-monitor');
+        const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws-monitor';
+        const socket = new SockJS(wsUrl);
         const client = Stomp.over(socket);
         client.debug = null;
         client.connect({}, () => {
