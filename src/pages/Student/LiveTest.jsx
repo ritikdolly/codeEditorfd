@@ -19,19 +19,23 @@ import {
   FileText,
   Code,
   ArrowRight,
+  RefreshCw,
+  RotateCcw,
 } from "lucide-react";
+import SockJS from 'sockjs-client';
+import { Stomp } from '@stomp/stompjs';
 
 const DEFAULT_CODE = `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your solution here\n        \n    }\n}`;
 
-function useCountdown(endMs) {
+function useCountdown(endMs, serverOffset = 0) {
   const [remaining, setRemaining] = useState(null);
   useEffect(() => {
     if (!endMs) return;
-    const tick = () => setRemaining(Math.max(0, endMs - Date.now()));
+    const tick = () => setRemaining(Math.max(0, endMs - (Date.now() + serverOffset)));
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [endMs]);
+  }, [endMs, serverOffset]);
   if (remaining === null) return "";
   const h = Math.floor(remaining / 3600000);
   const m = Math.floor((remaining % 3600000) / 60000);
@@ -48,7 +52,7 @@ export function LiveTest() {
   const [questions, setQuestions] = useState([]);
   const [activeIdx, setActiveIdx] = useState(0);
   const [codeMap, setCodeMap] = useState({});
-  const [output, setOutput] = useState(null);
+  const [outputsByQuestion, setOutputsByQuestion] = useState({});
   const [running, setRunning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -59,9 +63,23 @@ export function LiveTest() {
   const [mobileTab, setMobileTab] = useState("problem");
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [testResult, setTestResult] = useState(null);
+  const [serverOffset, setServerOffset] = useState(0);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
+  useEffect(() => {
+    const id = setInterval(() => setCurrentTime(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const now = currentTime + serverOffset;
+  const startMs = test?.startTime ? new Date(test.startTime).getTime() : null;
   const endMs = test?.endTime ? new Date(test.endTime).getTime() : null;
-  const countdown = useCountdown(endMs);
+
+  const countdown = useCountdown(endMs, serverOffset);
+  const waitCountdown = useCountdown(startMs, serverOffset);
+
+  const isBeforeStart = startMs && now < startMs;
+  const isAfterEnd = endMs && now > endMs;
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -69,7 +87,7 @@ export function LiveTest() {
     
     // Warn before refresh/exit
     const handleBeforeUnload = (e) => {
-      if (!submitted && isAttemptInProgress) {
+      if (!submitted && isAttemptInProgress && !isAfterEnd) {
         e.preventDefault();
         e.returnValue = "";
       }
@@ -80,7 +98,7 @@ export function LiveTest() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [submitted, isAttemptInProgress]);
+  }, [submitted, isAttemptInProgress, isAfterEnd]);
 
   useEffect(() => {
     // Restore from session storage
@@ -93,46 +111,99 @@ export function LiveTest() {
       setActiveIdx(parseInt(savedIdx));
     }
 
-    studentService
-      .startAttempt(id)
-      .then((attempt) => {
-        setIsAttemptInProgress(true);
+    // Sync with server time
+    studentService.getServerTime()
+      .then(res => {
+        const serverTime = new Date(res.serverTime).getTime();
+        setServerOffset(serverTime - Date.now());
       })
-      .catch((err) => {
-        if (err.response?.status === 403 || err.response?.status === 400) {
-          setSubmitted(true);
-          toast.error("Test ALREADY submitted and evaluated!");
-          // Clear storage on mount if already submitted
-          sessionStorage.removeItem(`test_code_${id}`);
-          sessionStorage.removeItem(`test_idx_${id}`);
-        }
-      });
+      .catch(console.error);
 
     studentService
       .getTest(id)
       .then(setTest)
       .catch(() => toast.error("Test not found"));
-    studentService.getTestQuestions(id).then(setQuestions).catch(console.error);
   }, [id]);
 
-  // Persist code changes to sessionStorage
   useEffect(() => {
-    if (Object.keys(codeMap).length > 0) {
-      sessionStorage.setItem(`test_code_${id}`, JSON.stringify(codeMap));
+    if (test && !isBeforeStart && questions.length === 0) {
+      studentService.getTestQuestions(id)
+        .then(setQuestions)
+        .catch(err => {
+          if (err.response?.status === 400) {
+            // Keep quiet or show subtle info if it's a known timing issue
+            console.log("Questions not available yet (timing guard)");
+          } else {
+            toast.error("Could not load questions");
+          }
+        });
     }
-  }, [codeMap, id]);
-
-  // Persist active index to sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem(`test_idx_${id}`, activeIdx.toString());
-  }, [activeIdx, id]);
+  }, [id, test, isBeforeStart, questions.length]);
 
   useEffect(() => {
-    if (countdown === "0m 00s" && !submitted && questions.length > 0) {
+    if (!test || !isAttemptInProgress || submitted) return;
+
+    if (isBeforeStart) return; // Haven't started yet
+
+    if (isAfterEnd) {
       toast("⏰ Time is up! Auto-submitting Test...", { icon: "⏰" });
-      handleFinishTest();
+      handleFinishTest(true); // true means auto-submit
     }
-  }, [countdown]);
+  }, [isAfterEnd, test, isAttemptInProgress, submitted]);
+
+  useEffect(() => {
+    if (test && !isBeforeStart && !isAfterEnd && !isAttemptInProgress && !submitted) {
+       studentService
+        .startAttempt(id)
+        .then((attempt) => {
+          setIsAttemptInProgress(true);
+        })
+        .catch((err) => {
+          if (err.response?.status === 403 || err.response?.status === 400) {
+            setSubmitted(true);
+            toast.error(err.response.data.error || "Test ALREADY submitted and evaluated!");
+            sessionStorage.removeItem(`test_code_${id}`);
+            sessionStorage.removeItem(`test_idx_${id}`);
+          }
+        });
+    }
+  }, [test, isBeforeStart, isAfterEnd, isAttemptInProgress, submitted]);
+
+  useEffect(() => {
+    if (!test || !user || !isAttemptInProgress) return;
+
+    const client = Stomp.over(() => new SockJS('http://localhost:8080/ws-monitor'));
+    client.debug = () => {}; // Quiet mode
+
+    const sendStatus = (status) => {
+      if (client.connected) {
+        client.send(`/app/test/${id}/status`, {}, JSON.stringify({
+          studentId: user.id,
+          studentName: user.name,
+          testId: id,
+          status: status,
+          questionsSolved: Object.keys(resultsByQuestion).length,
+          totalQuestions: questions.length
+        }));
+      }
+    };
+
+    client.connect({}, () => {
+      sendStatus('RECONNECT');
+    });
+
+    // Send update when progress changes
+    if (Object.keys(resultsByQuestion).length > 0) {
+      sendStatus('PROGRESS');
+    }
+
+    return () => {
+      if (client.connected) {
+        sendStatus('DISCONNECT');
+        client.disconnect();
+      }
+    };
+  }, [id, user, test, isAttemptInProgress, resultsByQuestion.length, questions.length]);
 
   const activeQuestion = questions[activeIdx];
   const activeCode = activeQuestion ? codeMap[activeQuestion.id] || "" : "";
@@ -145,7 +216,7 @@ export function LiveTest() {
   const handleRun = async () => {
     if (!activeQuestion) return;
     setRunning(true);
-    setOutput(null);
+    setOutputsByQuestion(prev => ({ ...prev, [activeQuestion.id]: null }));
     // Switch to editor tab on mobile so user can see output
     setMobileTab("editor");
     try {
@@ -165,12 +236,33 @@ export function LiveTest() {
           sampleTestCases.length > 0 ? sampleTestCases : undefined,
         input: sampleTestCases.length === 0 ? "" : undefined,
       });
-      setOutput(res);
+      setOutputsByQuestion((prev) => ({
+        ...prev,
+        [activeQuestion.id]: res,
+      }));
     } catch (err) {
       toast.error("Execution failed. Check your code.");
     } finally {
       setRunning(false);
     }
+  };
+
+  const handleResetCode = async () => {
+    if (!activeQuestion || submitted) return;
+    
+    // Clear the code for current question in the map
+    // The editor component will re-fetch the initial template from the effect if we clear it, 
+    // but better to explicitly set it to template if we have it or a default.
+    let initialCode = `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your solution here\n        \n    }\n}`;
+    
+    if (activeQuestion.templateCode) {
+        initialCode = activeQuestion.templateCode;
+    } else if (activeQuestion.prefixCode || activeQuestion.suffixCode) {
+        initialCode = (activeQuestion.prefixCode || "") + "\n/* START_EDITABLE */\n\n/* END_EDITABLE */\n" + (activeQuestion.suffixCode || "");
+    }
+
+    setCodeMap(prev => ({ ...prev, [activeQuestion.id]: initialCode }));
+    toast.success("Code reset to initial template.");
   };
 
   const handleSubmitQuestion = async () => {
@@ -185,10 +277,20 @@ export function LiveTest() {
       });
       setResultsByQuestion((prev) => ({
         ...prev,
-        [activeQuestion.id]: res,
+        [activeQuestion.id]: res.submission,
       }));
+      // Also store test case results for console display
+      setOutputsByQuestion((prev) => ({
+        ...prev,
+        [activeQuestion.id]: {
+          testCaseResults: res.testCaseResults,
+          status: res.submission.score > 0 ? "ALL_PASSED" : "SOME_FAILED",
+          judgeReport: res.judgeReport
+        },
+      }));
+
       toast.success(
-        `Question Submitted! Score: ${res.score?.toFixed(1)} / ${activeQuestion.marks}`,
+        `Question Submitted! Score: ${res.submission.score?.toFixed(1)} / ${activeQuestion.marks}`,
       );
     } catch (err) {
       if (err.response?.status === 400 || err.response?.status === 403) {
@@ -203,17 +305,38 @@ export function LiveTest() {
     }
   };
 
-  const handleFinishTest = async () => {
+  const handleFinishTest = async (autoSubmit = false) => {
     if (submitted || submitting) return;
 
-    const confirm = window.confirm(
-      "Are you sure you want to finish the test? You will not be able to modify your answers.",
-    );
-    if (!confirm) return;
+    if (!autoSubmit) {
+      const confirm = window.confirm(
+        "Are you sure you want to finish the test? You will not be able to modify your answers.",
+      );
+      if (!confirm) return;
+    }
 
     setSubmitting(true);
     try {
       const result = await studentService.submitAttempt(id);
+      
+      // Notify monitor of submission
+      try {
+        const socket = new SockJS('http://localhost:8080/ws-monitor');
+        const client = Stomp.over(socket);
+        client.debug = null;
+        client.connect({}, () => {
+          client.send(`/app/test/${id}/status`, {}, JSON.stringify({
+            studentId: user?.id,
+            studentName: user?.name,
+            testId: id,
+            status: 'SUBMIT',
+            questionsSolved: questions.length,
+            totalQuestions: questions.length
+          }));
+          setTimeout(() => client.disconnect(), 1000);
+        });
+      } catch(e) {}
+
       setTestResult(result);
       setSubmitted(true);
       // Clear persistence on successful submission
@@ -237,6 +360,49 @@ export function LiveTest() {
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-500"></div>
       </div>
     );
+
+  if (isBeforeStart) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4"
+        style={{ background: "var(--bg-gradient)" }}
+      >
+        <div className="glass-card p-10 text-center max-w-md w-full border border-slate-700/50">
+          <Clock className="w-16 h-16 text-purple-400 mx-auto mb-6 animate-pulse" />
+          <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Access Locked</h1>
+          <p className="text-slate-400 mb-8 font-medium">This examination has not started yet.</p>
+          
+          <div className="bg-slate-950/50 rounded-2xl p-6 border border-purple-500/20 mb-6">
+            <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Syncing Starts In</p>
+            <p className="text-white text-4xl font-black font-mono">{waitCountdown || "Calculating..."}</p>
+          </div>
+          
+          <p className="text-xs text-slate-500 italic">Please stay on this page. Access will be granted automatically.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAfterEnd && !isAttemptInProgress && !submitted) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-4"
+        style={{ background: "var(--bg-gradient)" }}
+      >
+        <div className="glass-card p-10 text-center max-w-md w-full border border-slate-700/50">
+          <AlertTriangle className="w-16 h-16 text-rose-400 mx-auto mb-6" />
+          <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Test Over</h1>
+          <p className="text-slate-400 mb-8 font-medium">The test has ended. You are no longer allowed to enter.</p>
+          <button 
+            onClick={() => navigate('/student')}
+            className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all border border-slate-700"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (submitted) {
     const totalPossibleMarks = questions.reduce(
@@ -302,6 +468,42 @@ export function LiveTest() {
               ? `Congratulations! You've successfully completed the assessment. Your details and scores have been recorded safely.`
               : `Your assessment has been successfully recorded. The results have been saved safely to the server. You can now leave this page.`}
           </p>
+
+          {/* Question Breakdown Section */}
+          {testResult?.questionResults && (
+            <div className="mb-8 text-left">
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <FileText size={14} /> Question Breakdown
+              </h3>
+              <div className="space-y-3">
+                {testResult.questionResults.map((qr, idx) => (
+                  <div key={idx} className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-4 flex items-center justify-between group hover:border-slate-600/50 transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs ${qr.status === 'Solved' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-700/30 text-slate-500'}`}>
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{qr.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{qr.attempts} Attempts</span>
+                          <span className="w-0.5 h-0.5 rounded-full bg-slate-700"></span>
+                          <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">{qr.testcasesPassed}/{qr.totalTestcases} Testcases</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-white">
+                        {qr.score?.toFixed(1)} <span className="text-[10px] text-slate-500 font-normal">pts</span>
+                      </p>
+                      <p className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${qr.status === 'Solved' ? 'text-emerald-500' : 'text-slate-600'}`}>
+                        {qr.status}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4 pt-2">
             <button
@@ -466,9 +668,20 @@ export function LiveTest() {
         <h3 className="panel-title">
           <Code size={14} /> Editor
         </h3>
-        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
-          Java
-        </span>
+        <div className="flex items-center gap-3">
+            <button
+                onClick={handleResetCode}
+                disabled={submitted}
+                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-rose-400 transition-colors"
+                title="Reset to Template"
+            >
+                <RotateCcw size={12} />
+                Reset
+            </button>
+            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
+                Java
+            </span>
+        </div>
       </div>
       <div className="flex-1 min-h-0 relative">
         {activeQuestion && (
@@ -513,6 +726,22 @@ export function LiveTest() {
       </div>
 
       <div className="panel-content-scroll bg-slate-950/30">
+        {/* Judge Report */}
+        {outputsByQuestion[activeQuestion?.id]?.judgeReport && (
+          <div className="mb-6 p-5 rounded-2xl bg-slate-900/80 border border-purple-500/20 shadow-xl shadow-purple-500/5 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                <span className="p-1 bg-purple-500/10 rounded-lg"><CheckCircle2 size={12} /></span> 
+                Official Judge Evaluation
+              </h3>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Verified Result</span>
+            </div>
+            <pre className="text-xs text-slate-300 font-mono whitespace-pre-wrap bg-slate-950/80 p-4 rounded-xl border border-slate-800/60 leading-relaxed overflow-x-auto">
+              {outputsByQuestion[activeQuestion.id].judgeReport}
+            </pre>
+          </div>
+        )}
+
         {/* Local Submission Result */}
         {currentResult && (
           <div className="mb-4 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10 space-y-2">
@@ -522,11 +751,11 @@ export function LiveTest() {
                   <CheckCircle2 size={12} className="text-emerald-400" />
                 </div>
                 <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                  Submitted Successfully
+                  Question Submitted
                 </span>
               </div>
-              <span className="text-[10px] text-slate-500 uppercase tracking-widest">
-                Latest Result
+              <span className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">
+                {currentResult.submissionTime ? new Date(currentResult.submissionTime).toLocaleTimeString() : 'Just now'}
               </span>
             </div>
             <div className="flex gap-4">
@@ -544,10 +773,10 @@ export function LiveTest() {
               <div className="w-px h-8 bg-slate-800 self-end"></div>
               <div>
                 <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">
-                  Accuracy
+                  Testcases
                 </p>
                 <p className="text-lg font-bold text-white">
-                  {currentResult.accuracy?.toFixed(1)}%
+                  {currentResult.testcasesPassed} <span className="text-xs text-slate-500">/ {currentResult.totalTestcases}</span>
                 </p>
               </div>
             </div>
@@ -555,11 +784,11 @@ export function LiveTest() {
         )}
 
         {/* Run Output */}
-        {output && (
+        {outputsByQuestion[activeQuestion?.id] && (
           <div className="space-y-4">
-            {output.testCaseResults && (
+            {outputsByQuestion[activeQuestion.id].testCaseResults && (
               <div className="grid gap-2">
-                {output.testCaseResults.map((tc, i) => (
+                {outputsByQuestion[activeQuestion.id].testCaseResults.map((tc, i) => (
                   <div
                     key={i}
                     className={`p-3 rounded-xl transition-all ${tc.passed ? "bg-emerald-500/5 border border-emerald-500/10" : "bg-rose-500/5 border border-rose-500/10"}`}
@@ -613,19 +842,19 @@ export function LiveTest() {
               </div>
             )}
 
-            {(output.output || output.error) && (
+            {(outputsByQuestion[activeQuestion.id].output || outputsByQuestion[activeQuestion.id].error) && (
               <div className="space-y-2">
                 <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                   Console Logs
                 </h3>
-                {output.output && (
+                {outputsByQuestion[activeQuestion.id].output && (
                   <pre className="text-xs text-slate-300 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono whitespace-pre-wrap">
-                    {output.output}
+                    {outputsByQuestion[activeQuestion.id].output}
                   </pre>
                 )}
-                {output.error && (
+                {outputsByQuestion[activeQuestion.id].error && (
                   <pre className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 font-mono whitespace-pre-wrap">
-                    {output.error}
+                    {outputsByQuestion[activeQuestion.id].error}
                   </pre>
                 )}
               </div>
@@ -633,7 +862,7 @@ export function LiveTest() {
           </div>
         )}
 
-        {!output && !currentResult && (
+        {!outputsByQuestion[activeQuestion?.id] && !currentResult && (
           <div className="flex flex-col items-center justify-center py-10 opacity-40">
             <div className="bg-slate-800 p-4 rounded-3xl mb-4">
               <Play size={24} className="text-slate-500" />

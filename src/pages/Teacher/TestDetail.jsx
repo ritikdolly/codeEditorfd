@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { teacherService } from '../../services/api';
 import QRCode from 'react-qr-code';
-import { Clock, Copy, QrCode, BookOpen, Download, UserCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Clock, Copy, QrCode, BookOpen, Download, UserCircle, ChevronDown, ChevronRight, Users, Eye, CheckCircle, XCircle, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const difficultyColor = { EASY: 'badge-green', MEDIUM: 'text-yellow-400 bg-yellow-500/10', HARD: 'badge-red' };
@@ -11,7 +11,8 @@ export function TestDetail() {
   const { id } = useParams();
   const [test, setTest] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [results, setResults] = useState([]); // This will now hold StudentTestResultDto
+  const [results, setResults] = useState([]); 
+  const [analytics, setAnalytics] = useState(null);
   
   // States for expandable rows
   const [expandedStudentId, setExpandedStudentId] = useState(null);
@@ -35,6 +36,10 @@ export function TestDetail() {
     teacherService.getTestResults(id)
       .then(setResults)
       .catch(err => console.error("Could not load results", err));
+
+    teacherService.getTestAnalytics(id)
+      .then(setAnalytics)
+      .catch(err => console.error("Could not load analytics", err));
   }, [id]);
 
   const copyLink = () => {
@@ -139,6 +144,33 @@ export function TestDetail() {
         <p className="text-slate-400 mt-1">Test configuration, QR Code, and Student Results</p>
       </div>
 
+      {/* Analytics Widgets */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
+        {[
+          { label: 'Registered', val: analytics?.totalStudentsRegistered, color: 'blue', icon: Users, desc: 'Total' },
+          { label: 'Appeared', val: analytics?.totalStudentsAppeared, color: 'purple', icon: Eye, desc: 'Active' },
+          { label: 'Completed', val: analytics?.totalStudentsCompleted, color: 'amber', icon: BarChart3, desc: 'Finished' },
+          { label: 'Passed', val: analytics?.totalStudentsPassed, color: 'emerald', icon: CheckCircle, desc: 'Success' },
+          { label: 'Failed', val: analytics?.totalStudentsFailed, color: 'rose', icon: XCircle, desc: 'Review' }
+        ].map((stat, i) => (
+          <div key={i} className="glass-card p-5 border border-slate-700/50 hover:border-slate-500 transition-all group overflow-hidden relative">
+            <div className={`absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity`}>
+               <stat.icon size={60} className={`text-${stat.color}-400`} />
+            </div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className={`p-1.5 rounded-lg bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
+                <stat.icon size={14} className={`text-${stat.color}-400`} />
+              </div>
+              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{stat.label}</span>
+            </div>
+            <div>
+              <p className="text-3xl font-black text-white leading-none">{stat.val || 0}</p>
+              <p className="text-[10px] text-slate-500 font-bold mt-1.5 uppercase tracking-tighter italic opacity-60">{stat.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Left Column: Test Info & QR Code */}
@@ -167,40 +199,46 @@ export function TestDetail() {
           </div>
 
           {/* Test Info */}
-          <div className="glass-card p-5 grid grid-cols-2 gap-4">
-            <div className="col-span-2 flex items-center gap-2 pb-2 border-b border-slate-700/50">
-              <Clock size={16} className="text-purple-400" />
-              <span className="text-white font-medium text-sm">Test Details</span>
+          <div className="glass-card p-6 border border-slate-700/50 space-y-6">
+            <div className="flex items-center gap-3 pb-4 border-b border-slate-700/30">
+              <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <Clock size={18} className="text-purple-400" />
+              </div>
+              <span className="text-white font-black text-sm uppercase tracking-widest">Protocol Stats</span>
             </div>
-            <div>
-              <p className="text-slate-400 text-xs">Duration</p>
-              <p className="text-white text-sm font-medium mt-0.5">{test.duration} mins</p>
-            </div>
-            <div>
-              <p className="text-slate-400 text-xs">Total Marks</p>
-              <p className="text-white text-sm font-medium mt-0.5">{totalMarks}</p>
-            </div>
-            <div>
-              <p className="text-slate-400 text-xs">Start Time</p>
-              <p className="text-white text-sm font-medium mt-0.5">
-                {test.startTime ? new Date(test.startTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}
-              </p>
-            </div>
-            <div>
-              <p className="text-slate-400 text-xs">End Time</p>
-              <p className="text-white text-sm font-medium mt-0.5">
-                {test.endTime ? new Date(test.endTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : 'N/A'}
-              </p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-slate-400 text-xs">Status</p>
-              <p className="text-white text-sm font-medium mt-0.5">{test.status || 'SCHEDULED'}</p>
+            
+            <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+              <div className="space-y-1">
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Timeline</p>
+                <p className="text-white text-sm font-bold">{test.duration} Mins</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Budget</p>
+                <p className="text-white text-sm font-bold">{totalMarks} Marks</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Pass Threshold (50%)</p>
+                <p className="text-emerald-400 text-sm font-bold">{(totalMarks * 0.5).toFixed(1)} Marks</p>
+              </div>
+              <div className="col-span-2 space-y-1">
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Window Open</p>
+                <p className="text-white text-xs font-medium font-mono">
+                  {test.startTime ? new Date(test.startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
+                </p>
+              </div>
+              <div className="col-span-2 space-y-1">
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Window Close</p>
+                <p className="text-white text-xs font-medium font-mono">
+                  {test.endTime ? new Date(test.endTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
+                </p>
+              </div>
             </div>
 
             {timeLeft && (
-              <div className="col-span-2 mt-2 p-3 rounded-lg bg-purple-500/10 border border-purple-500/20 text-center">
-                <p className="text-purple-400 text-xs font-semibold uppercase tracking-wider">Live Status</p>
-                <p className="text-white text-lg font-bold font-mono">{timeLeft}</p>
+              <div className="mt-4 p-4 rounded-2xl bg-slate-950/50 border border-purple-500/20 text-center shadow-inner relative overflow-hidden group">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
+                <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">Syncing Countdown</p>
+                <p className="text-white text-2xl font-black font-mono tracking-tight">{timeLeft}</p>
               </div>
             )}
           </div>
@@ -260,9 +298,10 @@ export function TestDetail() {
                     <tr>
                       <th className="px-4 py-3 font-medium w-10"></th>
                       <th className="px-4 py-3 font-medium">Student</th>
+                      <th className="px-4 py-3 font-medium text-center">Submission Status</th>
                       <th className="px-4 py-3 font-medium">Total Score</th>
                       <th className="px-4 py-3 font-medium">Overall Accuracy</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium">Evaluation</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -286,6 +325,11 @@ export function TestDetail() {
                                 <p className="text-white font-medium truncate max-w-[150px]">{r.studentName}</p>
                                 <p className="text-slate-400 text-xs truncate max-w-[150px]">{r.studentEmail}</p>
                               </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${r.submissionStatus === 'SUBMITTED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                                  {r.submissionStatus === 'SUBMITTED' ? 'Submitted' : 'Appeared'}
+                                </span>
+                              </td>
                               <td className="px-4 py-3 font-mono text-white">
                                 {r.totalScore?.toFixed(1)} <span className="text-slate-500 text-xs">/ {totalMarks}</span>
                               </td>
@@ -293,7 +337,7 @@ export function TestDetail() {
                                 {r.overallAccuracy?.toFixed(1)}%
                               </td>
                               <td className="px-4 py-3">
-                                <span className={`badge ${r.status === 'Passed' ? 'badge-green' : 'badge-red'} text-xs`}>
+                                <span className={`badge ${r.status === 'Pass' || r.status === 'Passed' ? 'badge-green' : 'badge-red'} text-xs`}>
                                   {r.status}
                                 </span>
                               </td>
@@ -331,7 +375,7 @@ export function TestDetail() {
                                                             <td className="py-2 font-mono text-slate-300">{detail.score?.toFixed(1)}</td>
                                                             <td className="py-2 font-mono text-slate-400">{detail.accuracy}%</td>
                                                             <td className="py-2">
-                                                                <span className={detail.status === 'Passed' ? 'text-emerald-400' : 'text-rose-400'}>
+                                                                <span className={detail.status === 'Pass' || detail.status === 'Passed' ? 'text-emerald-400' : 'text-rose-400'}>
                                                                     {detail.status}
                                                                 </span>
                                                             </td>

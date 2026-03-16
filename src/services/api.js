@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -9,7 +9,7 @@ export const api = axios.create({
 
 // Attach JWT to every request
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -39,6 +39,7 @@ export const teacherService = {
   getTestQuestions: (testId) => api.get(`/teacher/tests/${testId}/questions`).then(r => r.data),
   getTestResults: (testId) => api.get(`/teacher/tests/${testId}/results`).then(r => r.data),
   getStudentTestDetails: (testId, studentId) => api.get(`/teacher/tests/${testId}/students/${studentId}/results`).then(r => r.data),
+  getTestAnalytics: (testId) => api.get(`/teacher/tests/${testId}/analytics`).then(r => r.data),
 };
 
 // --- Student API ---
@@ -51,4 +52,5 @@ export const studentService = {
   submitAttempt: (testId) => api.post(`/student/attempts/${testId}/submit`).then(r => r.data),
   saveDraft: (testId, questionId, code) => api.put(`/student/attempts/${testId}/questions/${questionId}/draft`, { code }).then(r => r.data),
   getDraft: (testId, questionId) => api.get(`/student/attempts/${testId}/questions/${questionId}/draft`).then(r => r.data),
+  getServerTime: () => api.get('/time').then(r => r.data),
 };
