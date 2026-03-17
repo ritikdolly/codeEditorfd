@@ -33,7 +33,10 @@ export const adminService = {
 // --- Teacher API ---
 export const teacherService = {
   getQuestions: () => api.get('/teacher/questions').then(r => r.data),
+  getQuestion: (id) => api.get(`/teacher/questions/${id}`).then(r => r.data),
   createQuestion: (data) => api.post('/teacher/questions', data).then(r => r.data),
+  updateQuestion: (id, data) => api.put(`/teacher/questions/${id}`, data).then(r => r.data),
+  deleteQuestion: (id) => api.delete(`/teacher/questions/${id}`).then(r => r.data),
   getTests: () => api.get('/teacher/tests').then(r => r.data),
   createTest: (data) => api.post('/teacher/tests', data).then(r => r.data),
   getTestQuestions: (testId) => api.get(`/teacher/tests/${testId}/questions`).then(r => r.data),

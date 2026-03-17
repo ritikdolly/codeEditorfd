@@ -12,11 +12,12 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminUsers } from './pages/admin/AdminUsers';
 
 // Teacher Pages
-import { TeacherDashboard } from './pages/teacher/TeacherDashboard';
-import { CreateQuestion } from './pages/teacher/CreateQuestion';
-import { CreateTest } from './pages/teacher/CreateTest';
-import { TestDetail } from './pages/teacher/TestDetail';
-import { TeacherResults } from './pages/teacher/TeacherResults';
+import { TeacherDashboard } from './pages/Teacher/TeacherDashboard';
+import { CreateQuestion } from './pages/Teacher/CreateQuestion';
+import { QuestionsList } from './pages/Teacher/QuestionsList';
+import { CreateTest } from './pages/Teacher/CreateTest';
+import { TestDetail } from './pages/Teacher/TestDetail';
+import { TeacherResults } from './pages/Teacher/TeacherResults';
 
 // Student Pages
 import { StudentDashboard } from './pages/student/StudentDashboard';
@@ -41,7 +42,9 @@ function App() {
         {/* Teacher */}
         <Route path="/teacher" element={<ProtectedRoute allowedRoles={['teacher']}><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<TeacherDashboard />} />
+          <Route path="questions" element={<QuestionsList />} />
           <Route path="questions/create" element={<CreateQuestion />} />
+          <Route path="questions/edit/:id" element={<CreateQuestion />} />
           <Route path="tests/create" element={<CreateTest />} />
           <Route path="tests/:id" element={<TestDetail />} />
           <Route path="results" element={<TeacherResults />} />
