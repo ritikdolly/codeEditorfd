@@ -34,7 +34,11 @@ export function TestDetail() {
       .catch(err => toast.error('Could not load test questions'));
 
     teacherService.getTestResults(id)
-      .then(setResults)
+      .then(data => {
+        // Sorting results by total score descending as a default for results
+        const sortedResults = [...data].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+        setResults(sortedResults);
+      })
       .catch(err => console.error("Could not load results", err));
 
     teacherService.getTestAnalytics(id)
@@ -60,7 +64,9 @@ export function TestDetail() {
       setLoadingDetails(true);
       try {
         const details = await teacherService.getStudentTestDetails(id, studentId);
-        setStudentDetails(prev => ({ ...prev, [studentId]: details }));
+        // Sort individual student question submissions by time descending (newest first)
+        const sortedDetails = [...details].sort((a, b) => new Date(b.submissionTime) - new Date(a.submissionTime));
+        setStudentDetails(prev => ({ ...prev, [studentId]: sortedDetails }));
       } catch (err) {
         toast.error('Failed to load student question details');
         console.error(err);

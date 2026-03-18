@@ -371,11 +371,11 @@ export function LiveTest() {
       >
         <div className="glass-card p-10 text-center max-w-md w-full border border-slate-700/50">
           <Clock className="w-16 h-16 text-purple-400 mx-auto mb-6 animate-pulse" />
-          <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Access Locked</h1>
+          <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Test Not Started</h1>
           <p className="text-slate-400 mb-8 font-medium">This examination has not started yet.</p>
           
           <div className="bg-slate-950/50 rounded-2xl p-6 border border-purple-500/20 mb-6">
-            <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Syncing Starts In</p>
+            <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Starts In</p>
             <p className="text-white text-4xl font-black font-mono">{waitCountdown || "Calculating..."}</p>
           </div>
           
@@ -729,12 +729,12 @@ export function LiveTest() {
 
       <div className="panel-content-scroll bg-slate-950/30">
         {/* Judge Report */}
-        {outputsByQuestion[activeQuestion?.id]?.judgeReport && (
+        {/* {outputsByQuestion[activeQuestion?.id]?.judgeReport && (
           <div className="mb-6 p-5 rounded-2xl bg-slate-900/80 border border-purple-500/20 shadow-xl shadow-purple-500/5 animate-in fade-in slide-in-from-top-2 duration-500">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[10px] font-black text-purple-400 uppercase tracking-widest flex items-center gap-2">
                 <span className="p-1 bg-purple-500/10 rounded-lg"><CheckCircle2 size={12} /></span> 
-                Official Judge Evaluation
+                Judge Report
               </h3>
               <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Verified Result</span>
             </div>
@@ -742,7 +742,7 @@ export function LiveTest() {
               {outputsByQuestion[activeQuestion.id].judgeReport}
             </pre>
           </div>
-        )}
+        )} */}
 
         {/* Local Submission Result */}
         {currentResult && (

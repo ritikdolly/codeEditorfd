@@ -12,7 +12,12 @@ export function TeacherDashboard() {
 
   useEffect(() => {
     teacherService.getQuestions().then(setQuestions).catch(console.error);
-    teacherService.getTests().then(setTests).catch(console.error);
+    teacherService.getTests()
+      .then(data => {
+        const sortedTests = [...data].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+        setTests(sortedTests);
+      })
+      .catch(console.error);
   }, []);
 
   const difficultyColor = { EASY: 'text-green-400', MEDIUM: 'text-yellow-400', HARD: 'text-red-400' };

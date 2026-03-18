@@ -9,7 +9,10 @@ export function TeacherResults() {
 
   useEffect(() => {
     teacherService.getTests()
-      .then(setTests)
+      .then(data => {
+        const sortedTests = [...data].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+        setTests(sortedTests);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
