@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Group as PanelGroup,
@@ -65,6 +65,13 @@ export function LiveTest() {
   const [testResult, setTestResult] = useState(null);
   const [serverOffset, setServerOffset] = useState(0);
   const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Proctoring States
+  const [fullscreenViolations, setFullscreenViolations] = useState(0);
+  const [isWarningActive, setIsWarningActive] = useState(false);
+  const [warningCountdown, setWarningCountdown] = useState(5);
+  const [hasStartedFullscreen, setHasStartedFullscreen] = useState(false);
+  const handleFinishTestRef = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setCurrentTime(Date.now()), 1000);
@@ -353,6 +360,84 @@ export function LiveTest() {
     }
   };
 
+  useEffect(() => {
+    handleFinishTestRef.current = handleFinishTest;
+  });
+
+  // --- Proctoring Logic ---
+
+  useEffect(() => {
+    if (!test || !isAttemptInProgress || submitted || isAfterEnd || !hasStartedFullscreen) return;
+
+    const handleViolation = () => {
+      if (document.getElementById('violation-warning-overlay')) return;
+      if (submitted) return;
+      
+      setIsWarningActive(true);
+      setWarningCountdown(5);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) handleViolation();
+    };
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) handleViolation();
+    };
+
+    const handleBlur = () => {
+      handleViolation();
+    };
+    
+    // Disable right-click
+    const handleContextMenu = (e) => e.preventDefault();
+    
+    // Disable shortcuts
+    const handleKeyDown = (e) => {
+      // Ctrl+C, Ctrl+V, F12, Ctrl+Shift+I
+      if (
+        (e.ctrlKey && ['c', 'v'].includes(e.key.toLowerCase())) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [test, isAttemptInProgress, submitted, isAfterEnd, hasStartedFullscreen]);
+
+  useEffect(() => {
+    if (!isWarningActive || submitted) return;
+
+    if (warningCountdown <= 0) {
+      toast.error("Your test has been submitted due to rule violation.");
+      if (handleFinishTestRef.current) handleFinishTestRef.current(true);
+      setIsWarningActive(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setWarningCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isWarningActive, warningCountdown, submitted]);
+
+  // --- End Proctoring Logic ---
+
   if (!test)
     return (
       <div
@@ -396,7 +481,10 @@ export function LiveTest() {
           <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Test Over</h1>
           <p className="text-slate-400 mb-8 font-medium">The test has ended. You are no longer allowed to enter.</p>
           <button 
-            onClick={() => navigate('/student')}
+            onClick={() => {
+              if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+              navigate('/student');
+            }}
             className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all border border-slate-700"
           >
             Back to Dashboard
@@ -509,7 +597,10 @@ export function LiveTest() {
 
           <div className="space-y-4 pt-2">
             <button
-              onClick={() => navigate("/student")}
+              onClick={() => {
+                if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+                navigate("/student");
+              }}
               className="w-full py-3.5 px-6 rounded-xl font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 transition-all flex items-center justify-center gap-2 group"
             >
               <span>Return to Dashboard</span>
@@ -520,6 +611,85 @@ export function LiveTest() {
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!hasStartedFullscreen && isAttemptInProgress && !submitted && !isBeforeStart && !isAfterEnd) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ background: "var(--bg-gradient)" }}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-rose-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div className="glass-card p-10 text-center max-w-md w-full border border-rose-700/50 shadow-2xl relative z-10 animate-in fade-in duration-500">
+           <AlertTriangle className="w-16 h-16 text-rose-400 mx-auto mb-6 animate-pulse" />
+           <h1 className="text-2xl font-black text-white mb-4 uppercase tracking-tight">Proctored Assessment</h1>
+           <p className="text-slate-300 mb-8 font-medium leading-relaxed">This test operates in strict Fullscreen mode. Leaving fullscreen, switching tabs, or changing windows will be flagged as a violation.</p>
+           
+           <div className="bg-rose-950/50 rounded-2xl p-4 border border-rose-500/20 mb-8 text-left space-y-2">
+             <div className="flex items-center gap-2 text-rose-200 text-xs font-medium">
+               <XCircle size={14} className="text-rose-400" /> Do not switch browser tabs
+             </div>
+             <div className="flex items-center gap-2 text-rose-200 text-xs font-medium">
+               <XCircle size={14} className="text-rose-400" /> Do not exit fullscreen
+             </div>
+             <div className="flex items-center gap-2 text-rose-200 text-xs font-medium">
+               <XCircle size={14} className="text-rose-400" /> Do not use keyboard shortcuts
+             </div>
+           </div>
+           
+           <button 
+             onClick={() => {
+               document.documentElement.requestFullscreen().then(() => {
+                 setHasStartedFullscreen(true);
+               }).catch(err => {
+                 toast.error("Fullscreen request denied. Please allow fullscreen to begin.");
+               });
+             }}
+             className="w-full py-4 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-600/20"
+           >
+             Enter Fullscreen & Begin
+           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isWarningActive) {
+    return (
+      <div id="violation-warning-overlay" className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden" style={{ background: "var(--bg-gradient)" }}>
+         <div className="absolute inset-0 bg-rose-950/80 backdrop-blur-md"></div>
+         <div className="glass-card p-12 text-center max-w-2xl w-full border border-rose-500/50 shadow-2xl shadow-rose-900/50 relative z-10 animate-in zoom-in-95 duration-300">
+           <AlertTriangle size={80} className="text-rose-500 mx-auto mb-8 animate-bounce" />
+           <h1 className="text-4xl md:text-5xl font-black text-white mb-4 uppercase tracking-tight leading-tight">Warning: Return Immediately</h1>
+           <p className="text-rose-300 text-lg mb-8 font-medium">You have left the test environment. Multiple violations will result in automatic submission.</p>
+           
+           <div className="text-8xl font-black text-white mb-10 tracking-widest tabular-nums drop-shadow-2xl">
+              00:0{warningCountdown}
+           </div>
+           
+           <button 
+             onClick={() => {
+               document.documentElement.requestFullscreen().then(() => {
+                 setIsWarningActive(false);
+                 setFullscreenViolations(prev => {
+                   const newV = prev + 1;
+                   if (newV > 3) {
+                     toast.error("Your test has been submitted due to rule violation (More than 3 violations).");
+                     if (handleFinishTestRef.current) handleFinishTestRef.current(true);
+                   } else {
+                     toast.error(`Violation recorded! (${newV}/3 allowed). Do not leave the test screen.`);
+                   }
+                   return newV;
+                 });
+                 setTimeout(() => window.focus(), 100);
+               }).catch(() => {
+                 toast.error("Please explicitly allow fullscreen from your browser.");
+               });
+             }}
+             className="w-full py-5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-2xl font-black text-lg uppercase tracking-widest transition-all shadow-xl shadow-rose-600/30 animate-pulse hover:animate-none"
+           >
+             Click to Restore Fullscreen
+           </button>
+         </div>
       </div>
     );
   }

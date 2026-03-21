@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { teacherService } from '../../services/api';
 import QRCode from 'react-qr-code';
@@ -18,6 +18,9 @@ export function TestDetail() {
   const [expandedStudentId, setExpandedStudentId] = useState(null);
   const [studentDetails, setStudentDetails] = useState({}); // { studentId: [SubmissionReportDto] }
   const [loadingDetails, setLoadingDetails] = useState(false);
+
+  const [filterQuery, setFilterQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'totalScore', direction: 'desc' });
 
   const testLink = `${window.location.origin}/student/test/${id}`;
 
@@ -75,6 +78,44 @@ export function TestDetail() {
       }
     }
   };
+
+  const handleSort = (key) => {
+    let direction = 'desc';
+    if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = 'asc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const processedResults = useMemo(() => {
+    let filtered = results;
+    if (filterQuery) {
+      const q = filterQuery.toLowerCase();
+      filtered = results.filter(r => 
+        r.studentName?.toLowerCase().includes(q) || 
+        r.studentEmail?.toLowerCase().includes(q) ||
+        r.status?.toLowerCase().includes(q) ||
+        r.submissionStatus?.toLowerCase().includes(q)
+      );
+    }
+    
+    return [...filtered].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+      
+      if (sortConfig.key === 'studentName') {
+         aVal = aVal?.toLowerCase() || '';
+         bVal = bVal?.toLowerCase() || '';
+      }
+      
+      if (aVal === undefined || aVal === null) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bVal === undefined || bVal === null) return sortConfig.direction === 'asc' ? 1 : -1;
+      
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [results, sortConfig, filterQuery]);
 
   const downloadResultsCSV = () => {
     if (!results.length) {
@@ -139,6 +180,21 @@ export function TestDetail() {
     <div className="p-6 flex items-center justify-center min-h-[400px]">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
     </div>
+  );
+
+  const SortHeader = ({ label, sortKey, align='left' }) => (
+    <th 
+      className={`px-4 py-3 font-medium cursor-pointer hover:bg-slate-700/30 transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
+      onClick={() => handleSort(sortKey)}
+    >
+      <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : ''}`}>
+        {label}
+        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-purple-400' : 'text-slate-600'}`}>
+          <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
+          <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
+        </span>
+      </div>
+    </th>
   );
 
   const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 0), 0);
@@ -285,16 +341,25 @@ export function TestDetail() {
 
           {/* Results Table */}
           <div className="space-y-3 pt-4 border-t border-slate-700/50">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-2">
                 <UserCircle size={18} className="text-emerald-400" />
                 <h2 className="text-lg font-semibold text-white">Student Submissions</h2>
-                <span className="badge badge-purple ml-2">{results.length}</span>
+                <span className="badge badge-purple ml-2">{processedResults.length}</span>
               </div>
-              <button onClick={downloadResultsCSV} disabled={results.length === 0}
-                className="btn-primary flex items-center gap-2 py-1.5 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20">
-                <Download size={14} /> Export CSV
-              </button>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="text"
+                  placeholder="Search students or status..."
+                  value={filterQuery}
+                  onChange={(e) => setFilterQuery(e.target.value)}
+                  className="bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-purple-500 transition-colors w-56 placeholder:text-slate-500"
+                />
+                <button onClick={downloadResultsCSV} disabled={results.length === 0}
+                  className="btn-primary flex items-center gap-2 py-1.5 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20">
+                  <Download size={14} /> Export CSV
+                </button>
+              </div>
             </div>
 
             <div className="glass-card overflow-hidden">
@@ -303,22 +368,22 @@ export function TestDetail() {
                   <thead className="text-xs text-slate-400 uppercase bg-slate-800/40 border-b border-slate-700/50">
                     <tr>
                       <th className="px-4 py-3 font-medium w-10"></th>
-                      <th className="px-4 py-3 font-medium">Student</th>
-                      <th className="px-4 py-3 font-medium text-center">Submission Status</th>
-                      <th className="px-4 py-3 font-medium">Total Score</th>
-                      <th className="px-4 py-3 font-medium">Overall Accuracy</th>
-                      <th className="px-4 py-3 font-medium">Evaluation</th>
+                      <SortHeader label="Student" sortKey="studentName" />
+                      <SortHeader label="Submission Status" sortKey="submissionStatus" align="center" />
+                      <SortHeader label="Total Score" sortKey="totalScore" />
+                      <SortHeader label="Overall Accuracy" sortKey="overallAccuracy" />
+                      <SortHeader label="Evaluation" sortKey="status" />
                     </tr>
                   </thead>
                   <tbody>
-                    {results.length === 0 ? (
+                    {processedResults.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
-                          No student submissions recorded yet.
+                        <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
+                          {results.length > 0 ? "No students match your search." : "No student submissions recorded yet."}
                         </td>
                       </tr>
                     ) : (
-                      results.map((r, idx) => (
+                      processedResults.map((r, idx) => (
                         <React.Fragment key={r.studentId}>
                             <tr 
                                 className={`border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer transition-colors ${expandedStudentId === r.studentId ? 'bg-slate-700/10' : ''}`}
