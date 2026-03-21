@@ -7,10 +7,6 @@ import {
 } from 'lucide-react';
 
 const NAV = {
-  admin: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-    { label: 'All Users', icon: Users, path: '/admin/users' },
-  ],
   teacher: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/teacher' },
     { label: 'Create Question', icon: BookOpen, path: '/teacher/questions/create' },

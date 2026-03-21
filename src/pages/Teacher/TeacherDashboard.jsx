@@ -46,11 +46,23 @@ export function TeacherDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {[
-          { label: 'Total Questions', val: questions.length, icon: HelpCircle, color: 'purple', desc: 'Active bank' },
-          { label: 'Tests Conducted', val: tests.length, icon: ClipboardList, color: 'blue', desc: 'Lifetime count' },
-          { label: 'Next Session', val: 'Soon', icon: Activity, color: 'emerald', desc: 'Upcoming' }
-        ].map((stat, i) => (
+        {(() => {
+          const now = Date.now();
+          const upcomingTests = tests.filter(t => t.startTime && new Date(t.startTime).getTime() > now);
+          upcomingTests.sort((a,b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+          
+          const nextSessionVal = upcomingTests.length > 0 
+            ? new Date(upcomingTests[0].startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) 
+            : 'None';
+          const nextSessionDesc = upcomingTests.length > 0
+            ? upcomingTests[0].name
+            : 'No upcoming tests';
+
+          return [
+            { label: 'Total Questions', val: questions.length, icon: HelpCircle, color: 'purple', desc: 'Active bank' },
+            { label: 'Tests Conducted', val: tests.length, icon: ClipboardList, color: 'blue', desc: 'Lifetime count' },
+            { label: 'Next Session', val: nextSessionVal, icon: Activity, color: 'emerald', desc: nextSessionDesc }
+          ].map((stat, i) => (
           <div key={i} className="glass-card p-6 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300 relative group overflow-hidden">
             <div className={`absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity p-4`}>
               <stat.icon size={120} className={`text-${stat.color}-400`} />
@@ -66,7 +78,8 @@ export function TeacherDashboard() {
               <p className="text-slate-500 text-xs mt-1 font-medium italic">{stat.desc}</p>
             </div>
           </div>
-        ))}
+          ));
+        })()}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
