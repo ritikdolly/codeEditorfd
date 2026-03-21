@@ -1,26 +1,42 @@
-import { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
+import { useState } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
 import {
-  Code2, LayoutDashboard, Users, BookOpen, PlusCircle,
-  BarChart2, LogOut, ChevronRight, Menu, X
-} from 'lucide-react';
+  Code2,
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  PlusCircle,
+  BarChart2,
+  LogOut,
+  ChevronRight,
+  Menu,
+  X,
+  Sun,
+  Moon,
+} from "lucide-react";
+import { useThemeStore } from "../../store/themeStore";
 
 const NAV = {
   admin: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
-    { label: 'All Users', icon: Users, path: '/admin/users' },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+    { label: "All Users", icon: Users, path: "/admin/users" },
   ],
   teacher: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/teacher' },
-    { label: 'Create Question', icon: BookOpen, path: '/teacher/questions/create' },
-    { label: 'Create Test', icon: PlusCircle, path: '/teacher/tests/create' },
-    { label: 'Results', icon: BarChart2, path: '/teacher/results' },
+    { label: "Dashboard", icon: LayoutDashboard, path: "/teacher" },
+    {
+      label: "Question Library",
+      icon: BookOpen,
+      path: "/teacher/questions",
+    },
+    { label: "Create Test", icon: PlusCircle, path: "/teacher/tests/create" },
+    { label: "Results", icon: BarChart2, path: "/teacher/results" },
   ],
 };
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const location = useLocation();
   const navigate = useNavigate();
   const role = user?.role?.toLowerCase();
@@ -29,105 +45,171 @@ export const DashboardLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const closeSidebar = () => setSidebarOpen(false);
 
   const SidebarContent = () => (
-    <>
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-slate-700/50">
+    <div className="flex flex-col h-full bg-[#09090b] text-white">
+      {/* ─── Logo & Header ─── */}
+      <div className="px-6 py-6 border-b border-white/5 bg-[#09090b]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-purple-600/20">
-              <Code2 size={18} className="text-purple-400" />
+          <Link
+            to="/"
+            className="flex items-center gap-3"
+            onClick={closeSidebar}
+          >
+            <div className="bg-[#2df07b] p-1.5 rounded text-black transition-transform">
+              <Code2 size={24} strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-white text-lg">CodeArena</span>
-          </div>
+            <span className="font-bold text-white text-lg tracking-tight uppercase">
+              CODEARENA
+            </span>
+          </Link>
+
           {/* Close button — only visible on mobile */}
           <button
             onClick={closeSidebar}
-            className="hamburger-btn md-hide"
-            style={{ display: 'flex' }}
+            className="lg:hidden text-gray-500 hover:text-white transition-colors"
             aria-label="Close menu"
           >
-            <X size={18} />
+            <X size={24} />
           </button>
         </div>
-        <div className="mt-3 px-1">
-          <p className="text-white text-sm font-medium truncate">{user?.name}</p>
-          <span className="text-xs text-slate-400 capitalize font-medium">{role}</span>
+
+        {/* User Info Overlay */}
+        <div className="mt-8 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+           <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-gray-400 border border-white/10 font-bold uppercase">
+             {user?.name?.charAt(0)}
+           </div>
+           <div className="flex flex-col min-w-0">
+             <p className="text-white text-sm font-bold truncate">
+               {user?.name}
+             </p>
+             <span className="text-[10px] text-[#2df07b] font-bold uppercase tracking-widest mt-0.5">
+               {role}
+             </span>
+           </div>
         </div>
       </div>
 
-      {/* Nav Links */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {links.map(link => {
-          const active = location.pathname === link.path ||
-            (link.path !== '/admin' && link.path !== '/teacher' && location.pathname.startsWith(link.path));
+      {/* ─── Nav Links ─── */}
+      <nav className="flex-1 py-8 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
+        {links.map((link) => {
+          const active =
+            location.pathname === link.path ||
+            (link.path !== "/admin" &&
+              link.path !== "/teacher" &&
+              location.pathname.startsWith(link.path));
+
           return (
-            <Link key={link.path} to={link.path} onClick={closeSidebar}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+            <Link
+              key={link.path}
+              to={link.path}
+              onClick={closeSidebar}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${
                 active
-                  ? 'bg-purple-600/25 text-white border border-purple-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/40'
-              }`}>
-              <link.icon size={16} className={active ? 'text-purple-400' : ''} />
+                  ? "bg-[#2df07b] text-zinc-950 shadow-lg shadow-[#2df07b]/20"
+                  : "text-gray-500 hover:text-white hover:bg-white/5 border border-transparent"
+              }`}
+            >
+              <link.icon
+                size={18}
+                className={active ? "text-zinc-950" : "text-gray-500"}
+                strokeWidth={2.5}
+              />
               {link.label}
-              {active && <ChevronRight size={14} className="ml-auto text-purple-400" />}
+              {active && (
+                <ChevronRight size={16} className="ml-auto text-zinc-950" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      {/* Logout */}
-      <div className="p-3 border-t border-slate-700/50">
-        <button onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all">
-          <LogOut size={16} />
+      {/* ─── Footer Section ─── */}
+      <div className="p-4 border-t border-white/5 space-y-2 bg-[#09090b]">
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+        >
+          {theme === "dark" ? (
+            <>
+              <Sun size={18} strokeWidth={2.5} />
+              Light Presence
+            </>
+          ) : (
+            <>
+              <Moon size={18} strokeWidth={2.5} />
+              Dark Presence
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all"
+        >
+          <LogOut size={18} strokeWidth={2.5} />
           Sign Out
         </button>
       </div>
-    </>
+    </div>
   );
 
   return (
-    <div className="dashboard-root">
-      {/* Mobile overlay */}
+    <div className="flex h-screen w-full bg-white font-sans text-gray-900 selection:bg-[#2df07b] selection:text-black overflow-hidden relative">
+      {/* ─── Mobile Sidebar Overlay ─── */}
       <div
-        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+        className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
         onClick={closeSidebar}
         aria-hidden="true"
       />
 
-      {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      {/* ─── Primary Sidebar ─── */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#09090b] border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
         <SidebarContent />
       </aside>
 
-      {/* Main area */}
-      <div className="dashboard-main flex flex-col">
-        {/* Mobile topbar */}
-        <div className="mobile-topbar">
-          <button
-            className="hamburger-btn"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open menu"
-          >
-            <Menu size={20} />
-          </button>
-          <div className="topbar-logo">
-            <div className="p-1.5 rounded-lg bg-purple-600/20">
-              <Code2 size={16} className="text-purple-400" />
+      {/* ─── Hub Content Area ─── */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f9fafb]">
+        {/* Hub Header Hub (Desktop Header + Mobile Header) */}
+        <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
+          <div className="flex items-center gap-4">
+            <button
+              className="lg:hidden text-gray-500 hover:text-black transition-colors"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open menu"
+            >
+              <Menu size={24} />
+            </button>
+            <div className="flex items-center gap-3 text-sm text-gray-500 font-bold uppercase tracking-widest px-3 py-1 bg-gray-50 rounded-lg border border-gray-100">
+               {location.pathname.split("/")[2] || "Dashboard"}
             </div>
-            <span className="font-bold text-white">CodeArena</span>
           </div>
-          <span className="text-xs text-slate-400 capitalize">{role}</span>
-        </div>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+               <div className="flex flex-col text-right hidden sm:flex">
+                 <span className="text-sm font-bold text-gray-900 leading-none">{user?.name}</span>
+                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{role} Account</span>
+               </div>
+               <div className="w-10 h-10 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center font-bold text-gray-400 shadow-sm">
+                 {user?.name?.charAt(0)}
+               </div>
+            </div>
+          </div>
+        </header>
+
+        {/* ─── Page Outlet Hub ─── */}
+        <main className="flex-1 overflow-y-auto relative z-10 p-4 lg:p-8 custom-scrollbar">
           <Outlet />
         </main>
       </div>

@@ -1,86 +1,116 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { teacherService } from '../../services/api';
-import { BarChart2, BookOpen, Clock, Users, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { teacherService } from "../../services/api";
+import { BarChart2, BookOpen, Clock, ArrowRight, ChevronLeft, Calendar } from "lucide-react";
 
 export function TeacherResults() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    teacherService.getTests()
+    teacherService
+      .getTests()
       .then(setTests)
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-purple-600/20">
-          <BarChart2 className="text-purple-400" size={24} />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Test Results Hub</h1>
-          <p className="text-slate-400 text-sm">Select a test to view student submissions, evaluate performance, and download CSV reports.</p>
-        </div>
-      </div>
-
-      {tests.length === 0 ? (
-        <div className="glass-card p-12 flex flex-col items-center justify-center text-center border-dashed">
-          <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4">
-            <BookOpen size={32} className="text-slate-600" />
+    <div className="animate-fade-in pb-20">
+      <div className="max-w-7xl mx-auto space-y-10">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
+          <div className="flex items-center gap-4">
+             <button 
+                onClick={() => navigate('/teacher')}
+                className="p-2 border border-gray-100 bg-white rounded-lg text-gray-400 hover:text-black hover:border-gray-300 transition-all shadow-sm"
+             >
+                <ChevronLeft size={20} />
+             </button>
+             <div>
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight uppercase">Performance Hub</h1>
+                <p className="text-gray-500 mt-1 text-[15px]">Select an assessment to evaluate student performance and export data.</p>
+             </div>
           </div>
-          <h3 className="text-lg font-medium text-white mb-2">No Tests Found</h3>
-          <p className="text-slate-400 mb-6 max-w-md">
-            You haven't created any tests yet. Create a test to invite students and track their coding performance.
-          </p>
-          <Link to="/teacher/tests/create" className="btn-primary">
-            Create First Test
-          </Link>
+          <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-lg font-black text-[10px] text-gray-400 uppercase tracking-widest">
+             <BarChart2 size={16} />
+             {tests.length} Assessments Tracked
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {tests.map(test => (
-            <div key={test.id} className="glass-card p-5 flex flex-col hover:border-purple-500/50 transition-colors group">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-white truncate pr-4" title={test.name}>{test.name}</h3>
-                <span className={`badge shrink-0 text-xs ${test.status === 'ACTIVE' ? 'badge-green' : 'badge-blue'}`}>
-                  {test.status || 'SCHEDULED'}
-                </span>
-              </div>
-              
-              <div className="space-y-3 mb-6 flex-1">
-                <div className="flex items-center text-slate-400 text-sm gap-2">
-                  <Clock size={16} />
-                  <span>Duration: <span className="text-slate-200">{test.duration} mins</span></span>
-                </div>
-                {test.startTime && (
-                  <div className="flex items-center text-slate-400 text-sm gap-2">
-                    <BarChart2 size={16} />
-                    <span>Started: <span className="text-slate-200">{new Date(test.startTime).toLocaleDateString()}</span></span>
-                  </div>
-                )}
-              </div>
-              
-              <Link 
-                to={`/teacher/tests/${test.id}`}
-                className="btn-secondary w-full justify-center group-hover:bg-purple-600/20 group-hover:text-purple-300 group-hover:border-purple-500/50 transition-all"
-              >
-                View Detailed Results <ArrowRight size={16} className="ml-1 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-              </Link>
+
+        {/* Content Area */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-64 bg-white rounded-2xl border border-gray-100 shadow-sm"></div>
+            ))}
+          </div>
+        ) : tests.length === 0 ? (
+          <div className="bg-white border border-gray-100 border-dashed rounded-[40px] p-24 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="p-6 bg-gray-50 rounded-full mb-8">
+              <BookOpen size={48} className="text-gray-300" />
             </div>
-          ))}
-        </div>
-      )}
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">No data recorded</h3>
+            <p className="text-gray-500 mb-10 max-w-sm text-[15px] font-medium leading-relaxed">
+              Launch your first assessment to begin tracking student progress and generating performance analytics.
+            </p>
+            <Link
+              to="/teacher/tests/create"
+              className="bg-black hover:bg-gray-800 text-white font-bold py-4 px-10 rounded-xl transition-all shadow-xl active:scale-95"
+            >
+              Create First Test
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {tests.map((test) => (
+              <div
+                key={test.id}
+                className="group bg-white border border-gray-100 rounded-2xl p-6 flex flex-col hover:border-zinc-900 transition-all shadow-sm hover:shadow-xl relative overflow-hidden"
+              >
+                {/* Visual Accent */}
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                   <BarChart2 size={120} strokeWidth={0.5} />
+                </div>
+
+                <div className="flex justify-between items-start mb-10 relative z-10">
+                   <div className="min-w-0">
+                      <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border inline-block mb-3 ${test.status === "ACTIVE" ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                        {test.status || "Scheduled"}
+                      </span>
+                      <h3 className="text-xl font-bold text-gray-900 truncate pr-4 leading-tight group-hover:text-black transition-colors">
+                        {test.name}
+                      </h3>
+                   </div>
+                </div>
+
+                <div className="space-y-4 mb-10 flex-1 relative z-10">
+                  <div className="flex items-center text-gray-400 text-[11px] gap-3 font-black uppercase tracking-widest">
+                    <Clock size={16} className="text-gray-300" />
+                    <span>Duration: <span className="text-gray-900">{test.duration} Minutes</span></span>
+                  </div>
+                  {test.startTime && (
+                    <div className="flex items-center text-gray-400 text-[11px] gap-3 font-black uppercase tracking-widest">
+                      <Calendar size={16} className="text-gray-300" />
+                      <span>Activated: <span className="text-gray-900">{new Date(test.startTime).toLocaleDateString([], { dateStyle: 'medium' })}</span></span>
+                    </div>
+                  )}
+                </div>
+
+                <Link
+                  to={`/teacher/tests/${test.id}`}
+                  className="w-full bg-zinc-950 hover:bg-black text-white font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-md active:scale-95 relative z-10"
+                >
+                  Inspect Results
+                  <ArrowRight size={18} className="translate-x-0 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
