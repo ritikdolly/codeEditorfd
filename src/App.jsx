@@ -11,7 +11,6 @@ import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 // Auth Pages
 import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
-import { ForgotPassword } from "./pages/auth/ForgotPassword";
 
 // Admin Pages
 import { AdminDashboard } from "./pages/Admin/AdminDashboard";
@@ -24,6 +23,7 @@ import { CreateTest } from "./pages/Teacher/CreateTest";
 import { TestDetail } from "./pages/Teacher/TestDetail";
 import { TeacherResults } from "./pages/Teacher/TeacherResults";
 import { QuestionLibrary } from "./pages/Teacher/QuestionLibrary";
+import { TeacherMonitor } from "./pages/Teacher/TeacherMonitor";
 
 // Student Pages
 import { StudentDashboard } from "./pages/Student/StudentDashboard";
@@ -49,7 +49,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
 
         {/* Admin */}
         <Route
@@ -76,8 +76,10 @@ function App() {
           <Route index element={<TeacherDashboard />} />
           <Route path="questions" element={<QuestionLibrary />} />
           <Route path="questions/create" element={<CreateQuestion />} />
+          <Route path="questions/edit/:id" element={<CreateQuestion />} />
           <Route path="tests/create" element={<CreateTest />} />
           <Route path="tests/:id" element={<TestDetail />} />
+          <Route path="monitor/:id" element={<TeacherMonitor />} />
           <Route path="results" element={<TeacherResults />} />
         </Route>
 

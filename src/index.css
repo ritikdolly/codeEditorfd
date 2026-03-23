@@ -118,6 +118,13 @@ body {
   @apply w-full bg-white border border-gray-300 rounded-lg text-gray-900 px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400;
 }
 
+.dashboard-root {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--bg-main);
+}
+
 /* Dark mode overrides for class-based components if needed */
 [data-theme='dark'] .btn-primary {
   @apply bg-zinc-100 text-zinc-950 hover:bg-white;

@@ -159,7 +159,7 @@ export const DashboardLayout = () => {
   );
 
   return (
-    <div className="flex h-screen w-full bg-white font-sans text-gray-900 selection:bg-[#2df07b] selection:text-black overflow-hidden relative">
+    <div className="flex h-screen w-full bg-[#09090b] font-sans text-gray-100 selection:bg-[#2df07b] selection:text-black overflow-hidden relative">
       {/* ─── Mobile Sidebar Overlay ─── */}
       <div
         className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
@@ -179,18 +179,19 @@ export const DashboardLayout = () => {
       </aside>
 
       {/* ─── Hub Content Area ─── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f9fafb]">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#09090b]">
         {/* Hub Header Hub (Desktop Header + Mobile Header) */}
-        <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-100 sticky top-0 z-30">
+        <header className="flex items-center justify-between px-8 py-4 bg-[#09090b] border-b border-white/5 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
-              className="lg:hidden text-gray-500 hover:text-black transition-colors"
+              className="lg:hidden text-gray-400 hover:text-white transition-colors"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open menu"
             >
               <Menu size={24} />
             </button>
-            <div className="flex items-center gap-3 text-sm text-gray-500 font-bold uppercase tracking-widest px-3 py-1 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex items-center gap-3 text-xs text-gray-400 font-bold uppercase tracking-widest px-3 py-1.5 bg-white/5 rounded border border-white/5">
+               <span className="text-[#2df07b] font-black mr-1">/</span>
                {location.pathname.split("/")[2] || "Dashboard"}
             </div>
           </div>
@@ -198,10 +199,10 @@ export const DashboardLayout = () => {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
                <div className="flex flex-col text-right hidden sm:flex">
-                 <span className="text-sm font-bold text-gray-900 leading-none">{user?.name}</span>
-                 <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">{role} Account</span>
+                 <span className="text-sm font-bold text-white leading-none">{user?.name}</span>
+                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{role} Terminal</span>
                </div>
-               <div className="w-10 h-10 rounded-full border border-gray-100 bg-gray-50 flex items-center justify-center font-bold text-gray-400 shadow-sm">
+               <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center font-bold text-gray-400">
                  {user?.name?.charAt(0)}
                </div>
             </div>
@@ -209,10 +210,16 @@ export const DashboardLayout = () => {
         </header>
 
         {/* ─── Page Outlet Hub ─── */}
-        <main className="flex-1 overflow-y-auto relative z-10 p-4 lg:p-8 custom-scrollbar">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto relative z-10 p-4 lg:p-10 custom-scrollbar">
+          {/* Subtle Background Glow for Context */}
+          <div className="absolute top-0 right-0 w-full max-w-2xl h-96 bg-[#2df07b]/5 blur-[120px] rounded-full pointer-events-none -z-10 opacity-50"></div>
+          
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
   );
 };
+

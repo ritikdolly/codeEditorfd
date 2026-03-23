@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Code2, ArrowLeft, Loader2, MailCheck } from "lucide-react";
+import { Code2, ArrowLeft, Loader2, MailCheck, Zap, Globe } from "lucide-react";
 import toast from "react-hot-toast";
 
 export function ForgotPassword() {
@@ -12,99 +12,124 @@ export function ForgotPassword() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // Simulating API call as there might not be a backend endpoint for this yet
+    // Simulating API call
     setTimeout(() => {
         setLoading(false);
         setSubmitted(true);
-        toast.success("Reset link sent if account exists.");
+        toast.success("Recovery vector transmitted. Check your intake.");
     }, 1500);
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row w-full font-sans bg-white">
-      {/* --- Left Side: Branding (Dark Mode) --- */}
-      <div className="w-full md:w-5/12 bg-[#09090b] relative p-10 md:p-16 flex flex-col justify-between min-h-[40vh] md:min-h-screen border-r border-gray-800">
-        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-[#09090b] z-0 pointer-events-none"></div>
+    <div className="min-h-screen flex flex-col md:flex-row w-full font-sans">
+      {/* Left Side - Branding (Black Background) */}
+      <div className="w-full md:w-1/2 bg-black p-10 md:p-16 lg:p-24 flex flex-col justify-center min-h-[50vh] md:min-h-screen">
+        <div className="max-w-md w-full mx-auto md:ml-0 md:mr-auto">
+          {/* Logo */}
+          <div className="flex items-center gap-2 mb-12">
+            <Code2 size={26} className="text-[#2df07b]" />
+            <span className="text-2xl font-bold tracking-tight text-white">
+              CodeArena_
+            </span>
+          </div>
 
-        <div className="relative z-10 flex flex-col h-full">
-          <Link to="/" className="flex items-center gap-3 mb-16 w-max">
-            <div className="bg-[#2df07b] p-1.5 rounded text-black">
-              <Code2 size={24} strokeWidth={2.5} />
-            </div>
-            <span className="text-2xl font-bold tracking-tight text-white">CodeArena</span>
-          </Link>
+          <div className="mb-12">
+            <p className="text-gray-300 text-[17px] mb-6">Password Recovery</p>
 
-          <div className="mt-auto mb-auto max-w-sm">
-            <h1 className="text-[36px] md:text-[42px] font-bold leading-tight text-white mb-6 tracking-tight">
-              Restore your <br />
-              <span className="text-gray-400">session access.</span>
+            <h1 className="text-[44px] md:text-[56px] font-bold leading-[1.15] text-white">
+              Recover Your <br />
+              <span className="inline-block text-[#2df07b] border-2 border-[#2df07b] rounded-xl px-4 py-1 mt-3 mb-3">
+                Account
+              </span>{" "}
+              <br />
+              access for <br />
+              <span className="inline-block text-[#2df07b] border border-[#2df07b] rounded-xl px-4 py-1 mt-3">
+                CodeArena
+              </span>
             </h1>
-            <p className="text-gray-400 text-[16px] leading-relaxed">
-              If you've misplaced your security credentials, we'll help you re-initialize your connection to the grid.
-            </p>
           </div>
 
-          <div className="mt-auto pt-8">
-            <p className="text-sm text-gray-500 font-medium">© 2026 CodeArena Inc.</p>
-          </div>
+          {/* Feature Points */}
+          <ul className="space-y-4 text-gray-200 text-[15px]">
+            <li className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-[#2df07b] shrink-0"></div>
+              Secure password recovery process
+            </li>
+            <li className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-[#2df07b] shrink-0"></div>
+              Regain access to your workflows
+            </li>
+            <li className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-[#2df07b] shrink-0"></div>
+              Resume your role seamlessly
+            </li>
+          </ul>
         </div>
       </div>
 
-      {/* --- Right Side: Form (Light Mode) --- */}
-      <div className="w-full md:w-7/12 bg-white p-8 md:p-16 flex flex-col justify-center min-h-screen">
-        <div className="max-w-[420px] w-full mx-auto">
+      {/* Right Side - Form (White Background) */}
+      <div className="w-full md:w-1/2 bg-white p-8 md:p-16 lg:p-24 flex flex-col justify-center min-h-screen">
+        <div className="max-w-md w-full mx-auto">
+          <button 
+            onClick={() => navigate('/login')}
+            className="flex items-center gap-2 text-gray-500 hover:text-slate-800 mb-6 transition-colors text-[11px] font-bold uppercase tracking-widest group"
+          >
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
+            Return to Login
+          </button>
+
           {!submitted ? (
             <>
-              <div className="mb-10 text-center md:text-left">
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="flex items-center gap-2 text-gray-400 hover:text-black mb-6 transition-colors text-sm font-bold uppercase tracking-widest"
-                >
-                  <ArrowLeft size={16} /> Back to Sign In
-                </button>
-                <h2 className="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">Reset Password</h2>
-                <p className="text-gray-500 text-[15px]">
-                  Enter your verified email address to receive recovery instructions.
-                </p>
-              </div>
+              <h2 className="text-[32px] md:text-[40px] font-light text-slate-800 mb-2">
+                Recover access
+              </h2>
+              <p className="text-slate-500 text-sm mb-8">Enter your email to receive recovery instructions.</p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <label className="block text-[14px] font-semibold text-gray-700 mb-2">Email Address</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Verified Email
+                  </label>
                   <input
-                    className="w-full bg-white border border-gray-300 rounded-lg text-gray-900 px-4 py-4 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors placeholder:text-gray-400"
+                    className="w-full bg-white border border-gray-300 rounded-full text-slate-800 px-5 py-3 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="name@arena.pro"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
-                >
-                  {loading ? <Loader2 size={18} className="animate-spin text-white" /> : null}
-                  {loading ? "Transmitting..." : "Send Recovery Link"}
-                </button>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-[#2df07b] hover:bg-[#25c464] text-black font-semibold py-3.5 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
+                  >
+                    {loading ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : null}
+                    {loading ? "Transmitting..." : "Transmit Link"}
+                  </button>
+                </div>
               </form>
             </>
           ) : (
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-3xl flex items-center justify-center mx-auto mb-8 text-[#2df07b] shadow-sm">
+            <div className="text-center flex flex-col items-center justify-center py-4">
+              <div className="w-20 h-20 bg-[#2df07b]/10 border border-[#2df07b]/20 rounded-full flex items-center justify-center mb-8 text-[#2df07b]">
                 <MailCheck size={40} strokeWidth={2.5} />
               </div>
-              <h2 className="text-[32px] font-bold text-gray-900 mb-4 tracking-tight">Check your intake.</h2>
-              <p className="text-gray-500 text-[16px] leading-relaxed mb-10">
-                If an account matches **{email}**, recovery instructions have been dispatched. Please verify your inbox and spam folders.
+              <h2 className="text-[32px] md:text-[40px] font-light text-slate-800 mb-4 leading-tight">
+                Transmission <br/> Sent.
+              </h2>
+              <p className="text-slate-500 text-sm leading-relaxed mb-10">
+                We've sent a recovery link to <span className="font-semibold text-slate-700">{email}</span>. Please check your secure intake.
               </p>
               <Link
                 to="/login"
-                className="inline-block bg-black hover:bg-gray-800 text-white font-bold py-4 px-10 rounded-xl transition-all shadow-xl active:scale-95"
+                className="w-full bg-black hover:bg-gray-900 text-[#2df07b] font-semibold py-3.5 px-6 rounded-full transition-colors flex items-center justify-center border border-black"
               >
-                Return to Login
+                Back to Login
               </Link>
             </div>
           )}
@@ -112,4 +137,3 @@ export function ForgotPassword() {
       </div>
     </div>
   );
-}

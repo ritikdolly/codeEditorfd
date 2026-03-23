@@ -30,69 +30,50 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row w-full font-sans bg-white">
-      {/* ─── Left Side: Branding (Dark Mode) ─── */}
-      <div className="w-full md:w-5/12 bg-[#09090b] relative p-10 md:p-16 flex flex-col justify-between min-h-[40vh] md:min-h-screen border-r border-gray-800">
-        {/* Faint Background Pattern */}
-        <div
-          className="absolute inset-0 z-0 opacity-10 pointer-events-none"
-          style={{
-            backgroundImage: "url('/image_6d4f00.jpg')", // Make sure the path matches your public folder
-            backgroundSize: "300px",
-          }}
-        ></div>
-
-        {/* Dark Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-[#09090b] z-0 pointer-events-none"></div>
-
-        <div className="relative z-10 flex flex-col h-full">
+    <div className="min-h-screen flex flex-col md:flex-row w-full font-sans">
+      {/* Left Side - Branding (Black Background) */}
+      <div className="w-full md:w-1/2 bg-black p-10 md:p-16 lg:p-24 flex flex-col justify-center min-h-[50vh] md:min-h-screen">
+        <div className="max-w-md w-full mx-auto md:ml-0 md:mr-auto">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 mb-16 w-max">
-            <div className="bg-[#2df07b] p-1.5 rounded text-black">
-              <Code2 size={24} strokeWidth={2.5} />
-            </div>
+          <div className="flex items-center gap-2 mb-12">
+            <Code2 size={26} className="text-[#2df07b]" />
             <span className="text-2xl font-bold tracking-tight text-white">
-              CodeArena
+              CodeArena_
             </span>
-          </Link>
-
-          <div className="mt-auto mb-auto max-w-sm">
-            <h1 className="text-[36px] md:text-[42px] font-bold leading-tight text-white mb-6 tracking-tight">
-              Welcome back to your workspace.
-            </h1>
-            <p className="text-gray-400 text-[16px] leading-relaxed">
-              Log in to access your coding environment, manage your projects,
-              and track your progress.
-            </p>
           </div>
 
-          <div className="mt-auto pt-8">
-            <p className="text-sm text-gray-500 font-medium">
-              © 2026 CodeArena Inc.
-            </p>
+          <div className="mb-12">
+            <p className="text-gray-300 text-[17px] mb-6">Welcome Developer</p>
+
+            <h1 className="text-[44px] md:text-[56px] font-bold leading-[1.15] text-white">
+              Welcome To <br />
+              <span className="inline-block text-[#2df07b] border-2 border-[#2df07b] rounded-xl px-4 py-1 mt-3 mb-3">
+                CodeArena
+              </span>{" "}
+              <br />
+              platform for <br />
+              <span className="inline-block text-[#2df07b] border border-[#2df07b] rounded-xl px-4 py-1 mt-3">
+                Student
+              </span>
+            </h1>
           </div>
         </div>
       </div>
 
-      {/* ─── Right Side: Login Form (Light Mode) ─── */}
-      <div className="w-full md:w-7/12 bg-white p-8 md:p-16 flex flex-col justify-center min-h-screen">
-        <div className="max-w-[420px] w-full mx-auto">
-          <div className="mb-10 text-center md:text-left">
-            <h2 className="text-[32px] font-bold text-gray-900 mb-2 tracking-tight">
-              Sign In
-            </h2>
-            <p className="text-gray-500 text-[15px]">
-              Enter your email and password to continue.
-            </p>
-          </div>
+      {/* Right Side - Form (White Background) */}
+      <div className="w-full md:w-1/2 bg-white p-8 md:p-16 lg:p-24 flex flex-col justify-center min-h-screen">
+        <div className="max-w-md w-full mx-auto">
+          <h2 className="text-[32px] md:text-[40px] font-light text-slate-800 mb-8">
+            Sign In
+          </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-[14px] font-semibold text-gray-700 mb-2">
-                Email Address
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Email address
               </label>
               <input
-                className="w-full bg-white border border-gray-300 rounded-lg text-gray-900 px-4 py-3 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors placeholder:text-gray-400"
+                className="w-full bg-white border border-gray-300 rounded-full text-slate-800 px-5 py-3 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
@@ -102,12 +83,12 @@ export function Login() {
             </div>
 
             <div>
-              <label className="block text-[14px] font-semibold text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Password
               </label>
               <div className="relative">
                 <input
-                  className="w-full bg-white border border-gray-300 rounded-lg text-gray-900 px-4 py-3 pr-12 focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-colors placeholder:text-gray-400"
+                  className="w-full bg-white border border-gray-300 rounded-full text-slate-800 px-5 py-3 pr-12 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors"
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
@@ -116,72 +97,70 @@ export function Login() {
                 />
                 <button
                   type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+
+              <div className="flex items-center justify-between mt-3 px-1">
+                {/* Remember Me */}
+                <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer hover:text-gray-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 text-[#2df07b] border-gray-300 rounded focus:ring-[#2df07b]"
+                  />
+                  Remember me
+                </label>
+
+                {/* Forgot Password */}
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-slate-700 hover:text-[#2df07b] hover:underline transition-colors font-medium"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between pt-1 mb-6 px-1">
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 text-black bg-white border-gray-300 rounded focus:ring-black focus:ring-offset-white cursor-pointer accent-black"
-                />
-                <span className="text-[14px] text-gray-600 group-hover:text-black transition-colors font-medium">
-                  Remember me
-                </span>
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-[14px] text-black hover:underline font-semibold"
+            {/* Buttons Row */}
+            <div className="pt-2 flex flex-col sm:flex-row gap-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-1/2 bg-[#2df07b] hover:bg-[#25c464] text-black font-semibold py-3.5 px-6 rounded-full transition-colors flex items-center justify-center gap-2"
               >
-                Forgot password?
+                {loading ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : null}
+                {loading ? "Authenticating..." : "Sign In"}
+              </button>
+
+              <Link
+                to="/register"
+                className="w-full sm:w-1/2 bg-black hover:bg-gray-900 text-[#2df07b] font-semibold py-3.5 px-6 rounded-full transition-colors flex items-center justify-center border border-black"
+              >
+                Register Account
               </Link>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3.5 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-md"
-            >
-              {loading ? (
-                <Loader2 size={18} className="animate-spin text-white" />
-              ) : null}
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
           </form>
 
-          <div className="mt-8">
-            <div className="flex items-center gap-4 mb-6">
+          {/* Alternate Login Methods */}
+          <div className="mt-10">
+            <div className="flex items-center gap-4 mb-8">
               <div className="flex-1 h-px bg-gray-200"></div>
-              <span className="text-gray-400 text-[13px] font-bold uppercase tracking-wider">
-                or continue with
-              </span>
+              <span className="text-gray-400 text-sm font-medium">or</span>
               <div className="flex-1 h-px bg-gray-200"></div>
             </div>
 
-            <button className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-lg py-3 hover:bg-gray-50 transition-colors font-semibold text-gray-700 shadow-sm">
-              <img
-                src="https://www.svgrepo.com/show/475656/google-color.svg"
-                alt="Google"
-                className="w-5 h-5"
-              />
-              Google
+            <button className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 rounded-full py-3.5 hover:bg-gray-50 transition-colors">
+             
+              <span className="font-medium text-slate-700">
+                Continue with Google
+              </span>
             </button>
           </div>
-
-          <p className="text-center text-gray-600 mt-10 text-[15px]">
-            Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="text-black hover:underline font-bold"
-            >
-              Register here
-            </Link>
-          </p>
         </div>
       </div>
     </div>

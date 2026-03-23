@@ -17,68 +17,91 @@ export function AdminDashboard() {
   ];
 
   return (
-    <div className="animate-fade-in space-y-10 pb-20">
-      
-      {/* Header section with simple hierarchy */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight uppercase">System Overview</h1>
-          <p className="text-gray-500 mt-1 text-[15px]">Global platform analytics and administrative control center.</p>
-        </div>
-        <div className="flex items-center gap-2 bg-zinc-900 px-4 py-2 rounded-lg shadow-xl shadow-black/5">
-           <ShieldCheck size={16} className="text-[#2df07b]" />
-           <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">Admin Authority Active</span>
-        </div>
-      </div>
-
-      {/* Primary Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card) => (
-          <div key={card.label} className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-            {/* Background design element */}
-            <div className={`absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity ${card.color}`}>
-              <card.icon size={80} strokeWidth={0.5} />
+    <div className="pb-20 relative z-10 animate-fade-in">
+      <div className="max-w-7xl mx-auto space-y-12">
+        
+        {/* Header section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b border-white/5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
+               <ShieldCheck size={14} />
+               <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Security Protocol Active</span>
             </div>
-            
-            <div className="flex flex-col relative z-10">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">{card.label}</span>
-              <div className="flex items-end justify-between">
-                <p className="text-4xl font-black text-gray-900 leading-none">{card.value}</p>
-                <div className={`p-2 rounded-lg ${card.bg} ${card.color}`}>
-                   <card.icon size={20} />
+            <h1 className="text-4xl font-bold text-white tracking-tight uppercase font-outfit">System Overview</h1>
+            <p className="text-gray-500 mt-2 text-[15px] font-medium max-w-xl italic">Global platform analytics and neural administrative control center.</p>
+          </div>
+          <div className="flex items-center gap-3 bg-black border border-[#2df07b]/20 text-[#2df07b] px-6 py-3 rounded-full shadow-[0_0_20px_rgba(45,240,123,0.05)]">
+             <Activity size={16} className="animate-pulse" />
+             <span className="text-[10px] font-bold uppercase tracking-widest leading-none mt-0.5">Admin Authority Verified</span>
+          </div>
+        </div>
+
+        {/* Primary Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {cards.map((card, i) => (
+            <div key={card.label} className="bg-[#111111] border border-white/5 rounded-[32px] p-8 transition-all hover:border-[#2df07b]/20 group relative overflow-hidden shadow-2xl">
+              {/* Background gradient effect */}
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#2df07b]/5 rounded-full blur-3xl group-hover:bg-[#2df07b]/10 transition-all opacity-0 group-hover:opacity-100"></div>
+              
+              <div className="flex flex-col relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                   <div className={`p-3 rounded-2xl bg-white/5 ${card.color} border border-white/5 group-hover:border-[#2df07b]/20 transition-all`}>
+                      <card.icon size={22} />
+                   </div>
+                   <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest leading-none group-hover:text-gray-400 transition-colors">{card.label}</span>
+                </div>
+                <div className="flex items-end justify-between gap-4">
+                  <p className="text-5xl font-bold text-white leading-none font-outfit tracking-tighter group-hover:scale-105 transition-transform origin-left">{card.value}</p>
+                  <ChevronRight size={18} className="text-gray-800 group-hover:text-[#2df07b] transition-all transform group-hover:scale-125 translate-y-1" />
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Secondary Data Hub Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm p-8 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mb-6">
-               <Activity size={32} className="text-gray-300" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 uppercase tracking-tight">System Performance Monitor</h3>
-            <p className="text-gray-400 text-sm font-medium max-w-sm mt-2 mb-8 uppercase tracking-wide">Infrastructure health and load metrics are currently stable.</p>
-            <div className="w-full h-2 bg-gray-50 rounded-full overflow-hidden">
-               <div className="w-3/4 h-full bg-[#2df07b] rounded-full"></div>
-            </div>
-         </div>
+        {/* Secondary Data Hub Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+           <div className="lg:col-span-2 bg-[#111111] border border-white/5 rounded-[40px] shadow-2xl p-12 transition-all hover:border-white/10 group">
+              <div className="flex items-start justify-between mb-12">
+                 <div className="space-y-1">
+                    <p className="text-[#2df07b] text-[10px] font-bold uppercase tracking-[0.3em] mb-2">Network Integrity</p>
+                    <h3 className="text-2xl font-bold text-white uppercase tracking-tight font-outfit">System Performance Monitor</h3>
+                    <p className="text-gray-500 text-sm font-medium mt-2 max-w-sm italic">Infrastructure health and load metrics are currently within optimal operational flux.</p>
+                 </div>
+                 <div className="w-16 h-16 rounded-3xl bg-black border border-white/5 flex items-center justify-center text-[#2df07b] shadow-inner group-hover:scale-110 transition-transform">
+                    <Activity size={32} />
+                 </div>
+              </div>
+              
+              <div className="space-y-6">
+                 <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Allocation Strain</span>
+                    <span className="text-[11px] font-bold text-white font-mono">75% Capacity</span>
+                 </div>
+                 <div className="w-full h-3 bg-black rounded-full overflow-hidden border border-white/5 p-0.5 shadow-inner">
+                    <div className="w-3/4 h-full bg-gradient-to-r from-[#2df07b]/50 via-[#2df07b] to-[#2df07b] rounded-full shadow-[0_0_15px_#2df07b]"></div>
+                 </div>
+                 <p className="text-[9px] font-bold text-gray-700 uppercase tracking-[0.5em] text-center pt-2 italic">Neural processing unit active • Signal sequence locked</p>
+              </div>
+           </div>
 
-         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8 flex flex-col justify-between">
-            <div className="space-y-4">
-               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Management Triggers</span>
-               <h3 className="text-lg font-black text-gray-900 leading-tight">Identity & Permission Control</h3>
-               <p className="text-gray-500 text-[13px] font-medium leading-relaxed">Adjust user protocols, verify faculty credentials, or modify security tiers.</p>
-            </div>
-            <button
-               onClick={() => window.location.href = '/admin/users'}
-               className="w-full bg-black hover:bg-zinc-800 text-white font-black py-4 rounded-xl transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-xs mt-8"
-            >
-               Manage User Protocols <ChevronRight size={18} />
-            </button>
-         </div>
+           <div className="bg-[#111111] border border-white/5 rounded-[40px] shadow-2xl p-12 flex flex-col justify-between transition-all hover:border-white/10 group">
+              <div className="space-y-2">
+                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400 mb-8 border border-white/5 group-hover:text-[#2df07b] group-hover:border-[#2df07b]/20 transition-all">
+                    <Users size={24} />
+                 </div>
+                 <h3 className="text-2xl font-bold text-white leading-tight uppercase tracking-tight font-outfit">Identity & Permission Control</h3>
+                 <p className="text-gray-500 text-[14px] font-medium leading-relaxed italic mt-4">Adjust user protocols, verify faculty credentials, or modify security tiers within the collective.</p>
+              </div>
+              
+              <button
+                 onClick={() => navigate('/admin/users')}
+                 className="w-full bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-5 rounded-3xl transition-all shadow-[0_0_30px_rgba(45,240,123,0.2)] active:scale-[0.98] flex items-center justify-center gap-3 uppercase tracking-[0.2em] text-[11px] mt-10"
+              >
+                 Manage Users <ChevronRight size={18} strokeWidth={3} />
+              </button>
+           </div>
+        </div>
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { studentService } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
-import { BookOpen, ArrowRight, Code2, LogOut, Search } from 'lucide-react';
+import { BookOpen, ArrowRight, Code2, LogOut, Search, Zap, ShieldCheck, Globe, Loader2 } from 'lucide-react';
 
 export function StudentDashboard() {
   const navigate = useNavigate();
@@ -21,106 +21,116 @@ export function StudentDashboard() {
     if (!testId.trim()) return;
     setLoading(true);
     try {
-      // Extract UUID if user pastes a full URL
       let parsedId = testId.trim();
-      const uuidMatch = parsedId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      const uuidMatch = parsedId.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
       if (uuidMatch) {
          parsedId = uuidMatch[0];
       }
 
       await studentService.getTest(parsedId);
+      toast.success("Test found. Redirecting to assessment.");
       navigate(`/student/test/${parsedId}`);
     } catch (err) {
-      toast.error('Test not found or access denied');
+      toast.error('Test not found or access denied.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] font-sans selection:bg-[#2df07b] selection:text-black flex flex-col items-center">
+    <div className="min-h-screen bg-[#09090b] font-sans text-gray-100 selection:bg-[#2df07b] selection:text-black flex flex-col overflow-hidden relative">
       
-      {/* Mini-Header for students */}
-      <nav className="w-full bg-white border-b border-gray-100 py-4 px-6 lg:px-12 flex justify-between items-center shadow-sm relative z-50">
-        <div className="flex items-center gap-2">
-           <div className="bg-[#2df07b] p-1.5 rounded text-black transition-transform">
-             <Code2 size={24} strokeWidth={2.5} />
+      {/* Background Glows */}
+      <div className="absolute top-0 right-0 w-full max-w-4xl h-96 bg-[#2df07b]/5 blur-[120px] rounded-full pointer-events-none opacity-50"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#2df07b]/5 blur-[100px] rounded-full pointer-events-none opacity-30"></div>
+
+      {/* Navigation */}
+      <nav className="w-full bg-[#09090b] py-5 px-8 lg:px-12 flex justify-between items-center border-b border-white/5 sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+           <div className="bg-white p-1 rounded-sm">
+             <Code2 size={20} className="text-black" strokeWidth={3} />
            </div>
-           <span className="font-bold text-gray-900 text-lg tracking-tight uppercase">CodeArena</span>
+           <span className="font-bold text-white text-xl tracking-tight uppercase">CodeArena</span>
         </div>
+
         <div className="flex items-center gap-6">
            <div className="flex flex-col text-right hidden sm:flex">
-             <p className="text-sm font-bold text-gray-900 leading-none">{user?.name}</p>
-             <span className="text-[10px] font-bold text-[#2df07b] uppercase tracking-widest mt-0.5">Student Account</span>
+             <p className="text-sm font-bold text-white leading-none tracking-tight">{user?.name}</p>
+             <span className="text-[10px] font-bold text-[#2df07b] uppercase tracking-widest mt-1 opacity-80">Student Account</span>
            </div>
            <button 
              onClick={handleLogout}
-             className="p-2 border border-gray-100 bg-white rounded-lg text-gray-400 hover:text-red-500 hover:border-red-100 transition-all shadow-sm active:scale-95"
+             className="p-2.5 bg-white/5 border border-white/5 rounded-xl text-gray-500 hover:text-white hover:bg-white/10 transition-all active:scale-95 group"
            >
-             <LogOut size={20} />
+             <LogOut size={18} />
            </button>
         </div>
       </nav>
 
-      <main className="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-lg animate-fade-in -mt-16">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase">Entrance Hub</h1>
-          <p className="text-gray-400 mt-2 font-bold text-sm uppercase tracking-widest">Digital Examination Center</p>
-        </div>
-
-        <div className="bg-white border border-gray-100 rounded-3xl shadow-2xl p-8 w-full relative overflow-hidden group">
-           {/* Visual background element */}
-           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none translate-x-8 -translate-y-8">
-             <BookOpen size={200} />
-           </div>
-           
-           <div className="relative z-10 flex flex-col items-center gap-8">
-              <div className="w-16 h-16 rounded-2xl bg-[#2df07b] text-black flex items-center justify-center shadow-lg shadow-[#2df07b]/20">
-                 <BookOpen size={30} strokeWidth={2.5} />
+      <main className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
+        <div className="max-w-xl w-full">
+            <div className="text-center mb-12">
+              <div className="flex items-center justify-center gap-2 text-[#2df07b] mb-4">
+                 <ShieldCheck size={16} />
+                 <span className="text-[11px] font-bold uppercase tracking-[0.3em]">Student Dashboard</span>
               </div>
+              <h1 className="text-5xl font-bold text-white tracking-tight mb-4">Join a Test</h1>
+              <p className="text-gray-400 font-medium text-[16px] max-w-sm mx-auto">Enter your test ID to join the assessment.</p>
+            </div>
 
-              <div className="text-center">
-                 <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Access Assessment</h2>
-                 <p className="text-gray-400 text-xs font-bold leading-relaxed max-w-[240px] mt-2 uppercase tracking-wide">
-                    Input the assessment token provided by your instructor.
-                 </p>
-              </div>
-
-              <form onSubmit={joinTest} className="w-full space-y-6">
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
-                     <Search size={22} />
+            <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl p-10 w-full relative overflow-hidden group">
+               {/* Visual Detail */}
+               <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-[0.03] pointer-events-none transition-opacity">
+                 <BookOpen size={200} className="rotate-12" />
+               </div>
+               
+               <div className="relative z-10 flex flex-col items-center gap-10">
+                  <div className="w-16 h-16 rounded-2xl bg-[#2df07b]/10 text-[#2df07b] flex items-center justify-center relative border border-[#2df07b]/20">
+                     <Zap size={28} fill="currentColor" stroke="none" />
                   </div>
-                  <input 
-                    className="w-full bg-gray-50 border-none rounded-2xl text-gray-900 px-6 py-4 pl-12 focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-bold" 
-                    value={testId} 
-                    onChange={e => setTestId(e.target.value)}
-                    placeholder="Enter Assessment Code..." 
-                    required 
-                  />
-                </div>
-                
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-black hover:bg-zinc-800 text-white font-black py-4 rounded-2xl transition-all shadow-xl active:scale-95 disabled:opacity-50 disabled:grayscale flex items-center justify-center gap-3 uppercase tracking-widest"
-                >
-                  {loading ? 'Validating Token...' : <>Initialize Test <ArrowRight size={20} /></>}
-                </button>
-              </form>
-              
-              <div className="pt-4 border-t border-gray-50 w-full text-center">
-                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-relaxed">
-                   Privacy Protected • CodeArena Hub Protocol
-                 </p>
-              </div>
-           </div>
+
+                  <form onSubmit={joinTest} className="w-full space-y-6">
+                    <div className="space-y-3">
+                       <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-2">Test ID</label>
+                       <div className="relative">
+                          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600 transition-colors">
+                             <Search size={20} />
+                          </div>
+                          <input 
+                            className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-6 py-4 pl-14 focus:outline-none focus:border-[#2df07b] transition-all placeholder:text-gray-600 font-bold uppercase tracking-widest text-lg" 
+                            value={testId} 
+                            onChange={e => setTestId(e.target.value)}
+                            placeholder="VEC-XXXX-XXXX" 
+                            required 
+                          />
+                       </div>
+                    </div>
+                    
+                    <button 
+                      type="submit" 
+                      disabled={loading}
+                      className="w-full bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-[13px] shadow-[#2df07b]/10"
+                    >
+                      {loading ? (
+                        <Loader2 size={20} className="animate-spin" />
+                      ) : (
+                        <>Join Test <ArrowRight size={20} /></>
+                      )}
+                    </button>
+                  </form>
+               </div>
+            </div>
         </div>
       </main>
 
-      <footer className="py-10 text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-         Terminal Ready • Session ID: {user?.id?.slice(0, 8)}
+      <footer className="py-10 px-12 flex justify-between items-center text-[11px] font-bold text-gray-600 uppercase tracking-[0.2em] relative z-10 border-t border-white/5">
+         <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#2df07b] animate-pulse"></div>
+            Node Active: 8081
+         </div>
+         <div>© 2026 CodeArena Terminal</div>
       </footer>
     </div>
   );
 }
+

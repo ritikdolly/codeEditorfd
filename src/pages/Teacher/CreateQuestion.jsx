@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { teacherService } from "../../services/api";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-import { PlusCircle, Trash2, Loader2, Info, ChevronLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { PlusCircle, Trash2, Loader2, Info, ChevronLeft, Save, Zap, Database, Terminal, Shield } from "lucide-react";
 
 const emptyTestCase = { input: "", expectedOutput: "", isHidden: false };
 
 export function CreateQuestion() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(!!id);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -24,6 +26,39 @@ export function CreateQuestion() {
   });
   const [testCases, setTestCases] = useState([{ ...emptyTestCase }]);
 
+  useEffect(() => {
+    if (id) {
+      teacherService.getQuestion(id)
+        .then(data => {
+          setForm({
+            title: data.title,
+            description: data.description,
+            difficulty: data.difficulty,
+            expectedTimeComplexity: data.expectedTimeComplexity || '',
+            marks: data.marks,
+            inputFormat: data.inputFormat || '',
+            outputFormat: data.outputFormat || '',
+            constraints: data.constraints || '',
+            prefixCode: data.prefixCode || '',
+            suffixCode: data.suffixCode || '',
+            templateCode: data.templateCode || '',
+          });
+          if (data.testCases && data.testCases.length > 0) {
+            setTestCases(data.testCases.map(tc => ({
+              input: tc.input,
+              expectedOutput: tc.expectedOutput,
+              isHidden: tc.isHidden
+            })));
+          }
+        })
+        .catch(err => {
+          toast.error('Failed to load question details');
+          navigate('/teacher/questions');
+        })
+        .finally(() => setFetching(false));
+    }
+  }, [id, navigate]);
+
   const addTestCase = () => setTestCases([...testCases, { ...emptyTestCase }]);
   const removeTestCase = (i) =>
     setTestCases(testCases.filter((_, idx) => idx !== i));
@@ -37,51 +72,73 @@ export function CreateQuestion() {
     e.preventDefault();
     setLoading(true);
     try {
-      await teacherService.createQuestion({ ...form, testCases });
-      toast.success("Question created successfully!");
+      if (id) {
+        await teacherService.updateQuestion(id, { ...form, testCases });
+        toast.success("Vector successfully recalibrated.");
+      } else {
+        await teacherService.createQuestion({ ...form, testCases });
+        toast.success("New vector transmitted to neural bank.");
+      }
       navigate("/teacher/questions");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create question");
+      toast.error(err.response?.data?.message || `Failed to ${id ? 'update' : 'create'} vector`);
     } finally {
       setLoading(false);
     }
   };
 
+  if (fetching) {
+     return (
+       <div className="h-[60vh] flex flex-col items-center justify-center animate-pulse gap-4">
+          <Loader2 className="w-10 h-10 text-[#2df07b] animate-spin" />
+          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Accessing Neural Records...</span>
+       </div>
+     );
+  }
+
   return (
-    <div className="animate-fade-in pb-20">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="animate-fade-in pb-20 relative z-10">
+      <div className="max-w-5xl mx-auto space-y-10">
         
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-10">
+          <div className="flex items-center gap-5">
              <button 
                 onClick={() => navigate('/teacher/questions')}
-                className="p-2 border border-gray-100 bg-white rounded-lg text-gray-400 hover:text-black hover:border-gray-300 transition-all shadow-sm"
+                className="p-3 border border-white/10 bg-white/5 rounded-xl text-gray-400 hover:text-white hover:border-white/20 transition-all shadow-xl group"
              >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={22} className="group-hover:-translate-x-1 transition-transform" />
              </button>
              <div>
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Create New Question</h1>
-                <p className="text-gray-500 mt-1 text-[15px]">Define a new coding problem for your question library.</p>
+                <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
+                   <Database size={14} />
+                   <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Neural Bank Specification</span>
+                </div>
+                <h1 className="text-4xl font-bold text-white tracking-tight uppercase">
+                  {id ? 'Refine Vector' : 'Initialize Vector'}
+                </h1>
              </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-10">
+        <form onSubmit={handleSubmit} className="space-y-12">
           
           {/* Section 1: Core Problem Info */}
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-             <div className="px-8 py-5 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
-                <Info size={18} className="text-gray-400" />
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Problem Definition</h2>
+          <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
+             <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <Info size={18} className="text-[#2df07b]" />
+                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Problem Definition</h2>
+                </div>
+                <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full">Spec 01</div>
              </div>
              
-             <div className="p-8 space-y-8">
-                <div className="grid grid-cols-1 gap-6">
-                   <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Title *</label>
+             <div className="p-8 space-y-10">
+                <div className="grid grid-cols-1 gap-8">
+                   <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Vector Designation (Title) *</label>
                     <input
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400 font-medium shadow-sm"
+                      className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] transition-all placeholder:text-gray-700 font-bold shadow-xl"
                       required
                       value={form.title}
                       onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -89,10 +146,10 @@ export function CreateQuestion() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Problem Context *</label>
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Contextual Description *</label>
                     <textarea
-                      className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black transition-all placeholder:text-gray-400 min-h-[160px] leading-relaxed font-medium"
+                      className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] transition-all placeholder:text-gray-700 min-h-[160px] leading-relaxed font-medium shadow-xl custom-scrollbar"
                       required
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -101,33 +158,35 @@ export function CreateQuestion() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-gray-50">
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Difficulty</label>
-                    <select
-                      className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black font-bold appearance-none cursor-pointer"
-                      value={form.difficulty}
-                      onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
-                    >
-                      <option value="EASY">Easy</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HARD">Hard</option>
-                    </select>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6 border-t border-white/5">
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Intensity Level</label>
+                    <div className="relative">
+                      <select
+                        className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold uppercase tracking-widest appearance-none cursor-pointer shadow-xl"
+                        value={form.difficulty}
+                        onChange={(e) => setForm({ ...form, difficulty: e.target.value })}
+                      >
+                        <option value="EASY">Easy presence</option>
+                        <option value="MEDIUM">Medium presence</option>
+                        <option value="HARD">Hard presence</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Total Points</label>
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Weightage (Marks)</label>
                     <input
-                      className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black font-bold"
+                      className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold shadow-xl"
                       type="number"
                       min="1"
                       value={form.marks}
                       onChange={(e) => setForm({ ...form, marks: parseInt(e.target.value) })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Time Complexity</label>
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Temporal Optimization</label>
                     <input
-                      className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black font-bold"
+                      className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold shadow-xl"
                       placeholder="e.g. O(log n)"
                       value={form.expectedTimeComplexity}
                       onChange={(e) => setForm({ ...form, expectedTimeComplexity: e.target.value })}
@@ -135,20 +194,20 @@ export function CreateQuestion() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Input Format</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Input Schema</label>
                     <textarea
-                      className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black font-medium min-h-[100px]"
+                      className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-medium min-h-[100px] shadow-xl custom-scrollbar"
                       placeholder="Detailed input specifications..."
                       value={form.inputFormat}
                       onChange={(e) => setForm({ ...form, inputFormat: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Output Format</label>
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Output Schema</label>
                     <textarea
-                      className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black font-medium min-h-[100px]"
+                      className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-medium min-h-[100px] shadow-xl custom-scrollbar"
                       placeholder="Detailed output specifications..."
                       value={form.outputFormat}
                       onChange={(e) => setForm({ ...form, outputFormat: e.target.value })}
@@ -156,10 +215,10 @@ export function CreateQuestion() {
                   </div>
                 </div>
 
-                <div>
-                   <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Constraints</label>
+                <div className="space-y-3 pt-6 border-t border-white/5">
+                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Logical Constraints</label>
                    <textarea
-                     className="w-full bg-gray-50 border-none rounded-xl text-gray-900 px-5 py-3 focus:ring-1 focus:ring-black font-bold placeholder:font-medium"
+                     className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold placeholder:font-medium shadow-xl custom-scrollbar"
                      placeholder="e.g. -10^9 <= n <= 10^9"
                      value={form.constraints}
                      onChange={(e) => setForm({ ...form, constraints: e.target.value })}
@@ -169,38 +228,43 @@ export function CreateQuestion() {
           </div>
 
           {/* Section 2: Code Templates */}
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-             <div className="px-8 py-5 border-b border-gray-50 bg-gray-50/50 flex items-center gap-2">
-                <PlusCircle size={18} className="text-gray-400" />
-                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Environment Skeleton</h2>
+          <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
+             <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <Terminal size={18} className="text-[#2df07b]" />
+                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Compiler Skeleton</h2>
+                </div>
+                <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full">Core 02</div>
              </div>
              
-             <div className="p-8 space-y-8">
-                <div>
-                   <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Initial Starter Code</label>
-                   <textarea
-                     className="w-full bg-gray-900 border-none rounded-xl text-gray-200 px-5 py-4 focus:ring-1 focus:ring-[#2df07b] font-mono text-[13px] leading-relaxed min-h-[180px]"
-                     placeholder="public class Solution { \n  /* START_EDITABLE */ \n  /* END_EDITABLE */ \n }"
-                     value={form.templateCode}
-                     onChange={(e) => setForm({ ...form, templateCode: e.target.value })}
-                   />
+             <div className="p-8 space-y-10">
+                <div className="space-y-3">
+                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Initial Prototype Code</label>
+                   <div className="rounded-xl overflow-hidden border border-white/5 shadow-2xl">
+                    <textarea
+                      className="w-full bg-[#050505] text-[#2df07b] px-6 py-6 focus:outline-none font-mono text-[14px] leading-relaxed min-h-[220px] custom-scrollbar"
+                      placeholder="public class Solution { \n  /* START_EDITABLE */ \n  /* END_EDITABLE */ \n }"
+                      value={form.templateCode}
+                      onChange={(e) => setForm({ ...form, templateCode: e.target.value })}
+                    />
+                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-50">
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Prefix Snippet</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-white/5">
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Namespace Imports (Prefix)</label>
                     <textarea
-                      className="w-full bg-gray-900 border-none rounded-xl text-gray-400 px-5 py-4 focus:ring-1 focus:ring-[#2df07b] font-mono text-[13px] leading-relaxed min-h-[120px]"
-                      placeholder="Hidden imports or setup..."
+                      className="w-full bg-[#050505] border border-white/5 rounded-xl text-gray-500 px-5 py-4 focus:outline-none focus:border-white/20 font-mono text-[13px] leading-relaxed min-h-[140px] custom-scrollbar shadow-xl"
+                      placeholder="Hidden imports or pre-logic..."
                       value={form.prefixCode}
                       onChange={(e) => setForm({ ...form, prefixCode: e.target.value })}
                     />
                   </div>
-                  <div>
-                    <label className="block text-[13px] font-bold text-gray-600 uppercase tracking-widest mb-2.5">Suffix Snippet</label>
+                  <div className="space-y-3">
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Driver Engine (Suffix)</label>
                     <textarea
-                      className="w-full bg-gray-900 border-none rounded-xl text-gray-400 px-5 py-4 focus:ring-1 focus:ring-[#2df07b] font-mono text-[13px] leading-relaxed min-h-[120px]"
-                      placeholder="Hidden driver logic..."
+                      className="w-full bg-[#050505] border border-white/5 rounded-xl text-gray-500 px-5 py-4 focus:outline-none focus:border-white/20 font-mono text-[13px] leading-relaxed min-h-[140px] custom-scrollbar shadow-xl"
+                      placeholder="Hidden driver or main logic..."
                       value={form.suffixCode}
                       onChange={(e) => setForm({ ...form, suffixCode: e.target.value })}
                     />
@@ -210,46 +274,49 @@ export function CreateQuestion() {
           </div>
 
           {/* Section 3: Validation Engine */}
-          <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-             <div className="px-8 py-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
+             <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                   <PlusCircle size={18} className="text-gray-400" />
-                   <h2 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Test Scenarios</h2>
+                   <Shield size={18} className="text-[#2df07b]" />
+                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Verification Clusters</h2>
                 </div>
                 <button
                   type="button"
                   onClick={addTestCase}
-                  className="text-xs font-bold text-black bg-gray-50 border border-gray-100 px-4 py-2 rounded-lg hover:bg-gray-100 transition-all flex items-center gap-2 shadow-sm"
+                  className="text-[10px] font-bold text-black bg-[#2df07b] px-4 py-2 rounded-lg hover:bg-[#25c464] transition-all flex items-center gap-2 shadow-sm uppercase tracking-widest active:scale-95"
                 >
-                  <PlusCircle size={14} /> Add Scenario
+                  <PlusCircle size={14} /> Link Scenario
                 </button>
              </div>
              
-             <div className="p-8 space-y-6">
+             <div className="p-8 space-y-8">
                 {testCases.map((tc, i) => (
-                  <div key={i} className="group p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex flex-col gap-6 relative">
+                  <div key={i} className="group/cluster p-8 bg-white/[0.01] rounded-2xl border border-white/5 flex flex-col gap-8 relative hover:border-white/10 transition-colors shadow-2xl">
                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                           <span className="w-6 h-6 rounded-full bg-gray-900 text-white text-[10px] font-bold flex items-center justify-center pointer-events-none">
+                        <div className="flex items-center gap-4">
+                           <span className="w-8 h-8 rounded-lg bg-[#2df07b]/10 text-[#2df07b] text-[12px] font-bold flex items-center justify-center border border-[#2df07b]/20">
                              {i + 1}
                            </span>
-                           <h3 className="text-xs font-bold text-gray-900 uppercase tracking-widest">Test Vector</h3>
+                           <h3 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Validation Vector {i+1}</h3>
                         </div>
-                        <div className="flex items-center gap-6">
-                           <label className="flex items-center gap-2 cursor-pointer group">
-                             <input
-                               type="checkbox"
-                               checked={tc.isHidden}
-                               onChange={(e) => updateTestCase(i, "isHidden", e.target.checked)}
-                               className="w-4 h-4 text-black border-gray-200 rounded focus:ring-black cursor-pointer accent-black"
-                             />
-                             <span className="text-[12px] font-bold text-gray-500 group-hover:text-black transition-colors uppercase tracking-widest">Hidden</span>
+                        <div className="flex items-center gap-8">
+                           <label className="flex items-center gap-3 cursor-pointer group/toggle">
+                             <div className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={tc.isHidden}
+                                  onChange={(e) => updateTestCase(i, "isHidden", e.target.checked)}
+                                  className="sr-only peer"
+                                />
+                                <div className="w-11 h-6 bg-white/5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2df07b]"></div>
+                             </div>
+                             <span className="text-[10px] font-bold text-gray-500 group-hover/toggle:text-gray-300 transition-colors uppercase tracking-widest">Classified Vector</span>
                            </label>
                            {testCases.length > 1 && (
                              <button
                                type="button"
                                onClick={() => removeTestCase(i)}
-                               className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                               className="text-gray-600 hover:text-rose-500 transition-colors p-2 bg-white/5 rounded-lg border border-white/5"
                              >
                                <Trash2 size={16} />
                              </button>
@@ -257,20 +324,20 @@ export function CreateQuestion() {
                         </div>
                      </div>
 
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Standard Input</label>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Raw Input Stream</label>
                            <textarea
-                             className="w-full bg-white border border-gray-100 rounded-xl text-gray-900 px-4 py-3 focus:ring-1 focus:ring-black font-mono text-[13px] min-h-[100px] shadow-sm"
+                             className="w-full bg-[#050505] border border-white/5 rounded-xl text-gray-300 px-5 py-4 focus:outline-none focus:border-[#2df07b] font-mono text-[13px] min-h-[120px] shadow-xl custom-scrollbar"
                              value={tc.input}
                              onChange={(e) => updateTestCase(i, "input", e.target.value)}
                              placeholder="5&#10;1 2 3 4 5"
                            />
                         </div>
-                        <div className="space-y-2">
-                           <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Expected Output</label>
+                        <div className="space-y-3">
+                           <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-1">Integrity Threshold (Output)</label>
                            <textarea
-                             className="w-full bg-white border border-gray-100 rounded-xl text-gray-900 px-4 py-3 focus:ring-1 focus:ring-black font-mono text-[13px] min-h-[100px] shadow-sm"
+                             className="w-full bg-[#050505] border border-white/5 rounded-xl text-[#2df07b] px-5 py-4 focus:outline-none focus:border-[#2df07b] font-mono text-[13px] min-h-[120px] shadow-xl custom-scrollbar"
                              value={tc.expectedOutput}
                              onChange={(e) => updateTestCase(i, "expectedOutput", e.target.value)}
                              placeholder="15"
@@ -279,25 +346,31 @@ export function CreateQuestion() {
                      </div>
                   </div>
                 ))}
+
+                {testCases.length === 0 && (
+                   <div className="text-center py-12 bg-white/[0.01] rounded-2xl border border-white/5 border-dashed">
+                      <p className="text-gray-600 text-[11px] font-bold uppercase tracking-widest">No validation clusters defined.</p>
+                   </div>
+                )}
              </div>
           </div>
 
           {/* Submission Bar */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-gray-100">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 pt-10 border-t border-white/5">
             <button
                type="button"
                onClick={() => navigate("/teacher/questions")}
-               className="text-gray-500 font-bold text-sm hover:text-black transition-colors px-6"
+               className="text-gray-600 font-bold text-[11px] uppercase tracking-widest hover:text-white transition-all px-8 py-3.5 bg-white/5 rounded-xl border border-white/5 active:scale-95"
             >
-               Discard Changes
+               Discard Buffer
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto bg-black hover:bg-gray-800 text-white font-bold py-4 px-12 rounded-xl transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 disabled:opacity-50"
+              className="w-full sm:w-64 bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4 px-12 rounded-xl transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[12px] shadow-[#2df07b]/10"
             >
-              {loading ? <Loader2 size={18} className="animate-spin" /> : null}
-              {loading ? "Committing..." : "Deploy Question"}
+              {loading ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} strokeWidth={2.5} />}
+              {loading ? "Transmitting..." : id ? "Finalize Vector" : "Deploy Vector"}
             </button>
           </div>
         </form>
@@ -305,3 +378,4 @@ export function CreateQuestion() {
     </div>
   );
 }
+

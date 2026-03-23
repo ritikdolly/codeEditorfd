@@ -4,12 +4,12 @@ import { User, ChevronRight, Search, ShieldCheck, GraduationCap, School } from '
 
 const RoleBadge = ({ role }) => {
   const styles = {
-    ADMIN: 'bg-red-50 text-red-600 border-red-100',
+    ADMIN: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
     TEACHER: 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20',
-    STUDENT: 'bg-blue-50 text-blue-600 border-blue-100',
+    STUDENT: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
   };
   return (
-    <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded border inline-flex items-center gap-1.5 ${styles[role] || 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+    <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-xl border inline-flex items-center gap-2 ${styles[role] || 'bg-white/5 text-gray-400 border-white/10'}`}>
        {role === 'ADMIN' && <ShieldCheck size={12} />}
        {role === 'TEACHER' && <School size={12} />}
        {role === 'STUDENT' && <GraduationCap size={12} />}
@@ -35,94 +35,103 @@ export function AdminUsers() {
   });
 
   return (
-    <div className="animate-fade-in space-y-10 pb-20">
-      
-      {/* Header section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-gray-100 pb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight uppercase">Identity Hub</h1>
-          <p className="text-gray-500 mt-1 text-[15px]">Manage user permissions, monitor registration logs, and enforce security protocols.</p>
-        </div>
-        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 px-4 py-2 rounded-lg font-black text-[10px] text-gray-400 uppercase tracking-widest">
-           <User size={16} />
-           {users.length} Identities Registered
-        </div>
-      </div>
-
-      {/* Control Bar: Filters & Search */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-        <div className="flex gap-2 p-1 bg-gray-50 rounded-xl overflow-x-auto no-scrollbar">
-          {['ALL', 'ADMIN', 'TEACHER', 'STUDENT'].map(role => (
-            <button 
-              key={role} 
-              onClick={() => setFilter(role)}
-              className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${filter === role ? 'bg-black text-white shadow-lg' : 'text-gray-400 hover:text-black hover:bg-white'}`}
-            >
-              {role}
-            </button>
-          ))}
-        </div>
+    <div className="pb-20 relative z-10 animate-fade-in">
+      <div className="max-w-7xl mx-auto space-y-12">
         
-        <div className="relative w-full lg:max-w-xs group">
-           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-black transition-colors">
-              <Search size={18} />
-           </div>
-           <input 
-              className="w-full bg-gray-50 border-none rounded-xl text-sm font-bold text-gray-900 px-6 py-3.5 pl-12 focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300" 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Query Name or Email..."
-           />
-        </div>
-      </div>
-
-      {/* Results Identity Ledger */}
-      <div className="bg-white border border-gray-100 rounded-[32px] shadow-sm overflow-hidden">
-        <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-50 bg-gray-50/50">
-                <th className="px-8 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest">Descriptor</th>
-                <th className="px-5 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest">Credential Stream</th>
-                <th className="px-5 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest">Privilege Tier</th>
-                <th className="px-8 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest text-right">Registration Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((user) => (
-                <tr key={user.id} className="group hover:bg-gray-50/50 transition-all">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white font-black text-xs flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </div>
-                      <span className="text-gray-900 font-black text-sm uppercase tracking-tight truncate max-w-[160px]">{user.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-5 text-gray-400 font-bold text-[13px]">{user.email}</td>
-                  <td className="px-5 py-5"><RoleBadge role={user.role} /></td>
-                  <td className="px-8 py-5 text-gray-400 text-[11px] font-bold uppercase tracking-widest text-right">
-                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString([], { dateStyle: 'medium' }) : 'Alpha Records'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-             <div className="p-4 bg-gray-50 rounded-full mb-4">
-                <Search size={32} className="text-gray-300" />
-             </div>
-             <p className="text-sm font-black text-gray-400 uppercase tracking-widest">No matching identities found in records.</p>
+        {/* Header section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b border-white/5">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
+               <ShieldCheck size={14} />
+               <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Collective Identity Management</span>
+            </div>
+            <h1 className="text-4xl font-bold text-white tracking-tight uppercase font-outfit">Identity Hub</h1>
+            <p className="text-gray-500 mt-2 text-[15px] font-medium max-w-xl italic">Manage user permissions, monitor registration logs, and enforce security protocols across the neural network.</p>
           </div>
-        )}
-      </div>
+          <div className="flex items-center gap-3 bg-black border border-white/10 px-6 py-3 rounded-full shadow-xl">
+             <User size={16} className="text-gray-400" />
+             <span className="text-[10px] font-bold text-white uppercase tracking-widest mt-0.5 leading-none">{users.length} Identities Registered</span>
+          </div>
+        </div>
 
-      <div className="flex items-center justify-between text-[10px] font-black text-gray-300 uppercase tracking-widest pt-4">
-         <span>Secure Ledger v4.2</span>
-         <span>Identity Integrity Verified</span>
+        {/* Control Bar: Filters & Search */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-[#111111] border border-white/5 rounded-[32px] p-6 shadow-2xl">
+          <div className="flex gap-3 p-1.5 bg-black/60 rounded-2xl overflow-x-auto no-scrollbar border border-white/5">
+            {['ALL', 'ADMIN', 'TEACHER', 'STUDENT'].map(role => (
+              <button 
+                key={role} 
+                onClick={() => setFilter(role)}
+                className={`px-8 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${filter === role ? 'bg-[#2df07b] text-black shadow-[0_0_20px_rgba(45,240,123,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+              >
+                {role}
+              </button>
+            ))}
+          </div>
+          
+          <div className="relative w-full lg:max-w-md group">
+             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#2df07b] transition-colors">
+                <Search size={18} />
+             </div>
+             <input 
+                className="w-full bg-black/40 border border-white/10 rounded-2xl text-[13px] font-bold text-white px-6 py-4 pl-14 focus:outline-none focus:border-[#2df07b]/50 transition-all placeholder:text-gray-700" 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="QUERY NAME OR EMAIL..."
+             />
+          </div>
+        </div>
+
+        {/* Results Identity Ledger */}
+        <div className="bg-[#111111] border border-white/5 rounded-[40px] shadow-2xl overflow-hidden">
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-white/[0.02] border-b border-white/5">
+                  <th className="px-10 py-6 font-bold text-[10px] text-gray-500 uppercase tracking-widest">Descriptor</th>
+                  <th className="px-6 py-6 font-bold text-[10px] text-gray-500 uppercase tracking-widest">Credential Stream</th>
+                  <th className="px-6 py-6 font-bold text-[10px] text-gray-500 uppercase tracking-widest text-center">Privilege Tier</th>
+                  <th className="px-10 py-6 font-bold text-[10px] text-gray-500 uppercase tracking-widest text-right">Registered At</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.02]">
+                {filtered.map((user) => (
+                  <tr key={user.id} className="group hover:bg-white/[0.01] transition-all">
+                    <td className="px-10 py-7">
+                      <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 rounded-2xl bg-black border border-white/5 text-white font-bold text-[15px] flex items-center justify-center shadow-inner group-hover:border-[#2df07b]/20 group-hover:text-[#2df07b] transition-all">
+                          {user.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-white font-bold text-[16px] uppercase tracking-tight group-hover:text-white transition-colors">{user.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-7 text-gray-500 font-medium text-[14px] font-mono">{user.email}</td>
+                    <td className="px-6 py-7 text-center"><RoleBadge role={user.role} /></td>
+                    <td className="px-10 py-7 text-gray-600 text-[11px] font-bold uppercase tracking-widest text-right italic font-mono">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'ALPHA RECORD'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          {filtered.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-32 text-center">
+               <div className="w-20 h-20 bg-black rounded-[32px] border border-white/5 flex items-center justify-center mb-8 shadow-inner group-hover:scale-110 transition-transform">
+                  <Search size={32} className="text-gray-800" />
+               </div>
+               <p className="text-[11px] font-bold text-gray-700 uppercase tracking-[0.4em] italic animate-pulse">Scanning Archive... No matching identities found.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] font-bold text-gray-800 uppercase tracking-[0.3em] pt-8 border-t border-white/5">
+           <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-gray-800"></div>
+              <span>Secure Ledger v4.2.0</span>
+           </div>
+           <span className="animate-pulse">Identity Integrity Verified • Collective Active</span>
+        </div>
       </div>
     </div>
   );
