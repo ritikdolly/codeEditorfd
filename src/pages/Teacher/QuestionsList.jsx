@@ -57,11 +57,11 @@ export function QuestionsList() {
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
         <div>
-          <button onClick={() => navigate('/teacher')} className="flex items-center gap-2 text-slate-500 hover:text-purple-400 font-bold text-xs uppercase tracking-widest transition-colors mb-4 group">
+          <button onClick={() => navigate('/teacher')} className="flex items-center gap-2 text-slate-500 hover:text-accent font-bold text-xs uppercase tracking-widest transition-colors mb-4 group">
              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Dashboard
           </button>
           <h1 className="text-4xl font-black text-white tracking-tight">
-            Question <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Bank</span>
+            Question <span className="text-transparent bg-clip-text bg-linear-to-r from-accent to-emerald-400">Bank</span>
           </h1>
           <p className="text-slate-400 mt-2 text-lg font-medium">View and manage your coding questions.</p>
         </div>
@@ -86,7 +86,7 @@ export function QuestionsList() {
         <div className="flex items-center gap-3 w-full md:w-auto">
           <Filter className="text-slate-500" size={18} />
           <select 
-            className="field-input py-3 bg-slate-900/40 border-slate-800 min-w-[150px]"
+            className="field-input py-3 bg-slate-900/40 border-slate-800 min-w-37.5"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -120,17 +120,17 @@ export function QuestionsList() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: i * 0.05 }}
-                className="glass-card p-6 border border-slate-800/50 hover:border-purple-500/30 transition-all group flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative"
+                className="glass-card p-6 border border-slate-800/50 hover:border-accent/30 transition-all group flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative"
               >
-                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500/0 via-purple-500/50 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute top-0 left-0 w-1 h-full bg-linear-to-b from-accent/0 via-accent/50 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="flex items-center gap-6 flex-1 min-w-0">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-center font-black text-xl text-slate-600 group-hover:text-purple-400 group-hover:border-purple-500/20 transition-all shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-center font-black text-xl text-slate-600 group-hover:text-accent group-hover:border-accent/20 transition-all shrink-0">
                     {q.title.charAt(0)}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-black text-white text-xl truncate group-hover:text-purple-300 transition-colors uppercase tracking-tight">{q.title}</h3>
+                      <h3 className="font-black text-white text-xl truncate group-hover:text-accent/80 transition-colors uppercase tracking-tight">{q.title}</h3>
                       <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border tracking-widest uppercase shrink-0 ${difficultyColor[q.difficulty]}`}>
                         {q.difficulty}
                       </span>
@@ -158,7 +158,7 @@ export function QuestionsList() {
                           </div>
                         )}
                         {q.visibility === 'PRIVATE' && (
-                          <div className="flex items-center gap-1.5 text-purple-400">
+                          <div className="flex items-center gap-1.5 text-slate-400">
                             <Lock size={12} />
                             <span className="text-[10px] uppercase tracking-tighter">Private</span>
                           </div>
@@ -174,7 +174,7 @@ export function QuestionsList() {
                 <div className="flex items-center gap-3 w-full md:w-auto shrink-0 relative z-10">
                   <button 
                     onClick={() => navigate(`/teacher/questions/edit/${q.id}`)}
-                    className="flex-1 md:flex-none p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-purple-600 hover:border-purple-500 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 md:flex-none p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-accent hover:border-accent transition-all flex items-center justify-center gap-2"
                   >
                     <Edit2 size={16} />
                     <span className="md:hidden text-xs font-black uppercase tracking-widest">Edit</span>

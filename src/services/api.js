@@ -55,6 +55,12 @@ export const teacherService = {
   createTest: (data) => api.post('/teacher/tests', data).then(r => r.data),
   getTestQuestions: (testId) => api.get(`/teacher/tests/${testId}/questions`).then(r => r.data),
   getTestResults: (testId) => api.get(`/teacher/tests/${testId}/results`).then(r => r.data),
+  getTest: (testId) => api.get('/teacher/tests').then(r => {
+    const tests = r.data || [];
+    const found = tests.find(t => t.id === testId);
+    if (!found) throw new Error('Test not found');
+    return found;
+  }),
   getStudentTestDetails: (testId, studentId) => api.get(`/teacher/tests/${testId}/students/${studentId}/results`).then(r => r.data),
   getTestAnalytics: (testId) => api.get(`/teacher/tests/${testId}/analytics`).then(r => r.data),
 };

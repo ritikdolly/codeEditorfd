@@ -21,7 +21,7 @@ export function TeacherDashboard() {
   }, []);
 
   const difficultyColor = {
-     EASY: "text-[#2df07b] bg-[#2df07b]/10 border-[#2df07b]/20",
+     EASY: "text-accent bg-accent/10 border-accent/20",
      MEDIUM: "text-amber-500 bg-amber-500/10 border-amber-500/20",
      HARD: "text-rose-500 bg-rose-500/10 border-rose-500/20",
   };
@@ -32,7 +32,7 @@ export function TeacherDashboard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10" style={{ borderBottom: "1px solid var(--divider)" }}>
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-[#2df07b]/10 text-[#2df07b] rounded-lg border border-[#2df07b]/20">
+            <div className="p-2 bg-accent/10 text-accent rounded-lg border border-accent/20">
               <LayoutDashboard size={20} strokeWidth={2.5} />
             </div>
             <span className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>
@@ -58,7 +58,7 @@ export function TeacherDashboard() {
           </Link>
           <Link
             to="/teacher/tests/create"
-            className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-8 rounded-xl transition-all flex items-center gap-3 text-sm shadow-lg shadow-[#2df07b]/20 active:scale-95 uppercase tracking-widest"
+            className="bg-accent hover:bg-accent-dark text-black font-bold py-3.5 px-8 rounded-xl transition-all flex items-center gap-3 text-sm shadow-lg shadow-accent/20 active:scale-95 uppercase tracking-widest"
           >
             <Zap size={18} fill="currentColor" stroke="none" /> Create Test
           </Link>
@@ -80,7 +80,7 @@ export function TeacherDashboard() {
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--stat-border)"; }}
           >
             <div className={`absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity p-4`}>
-              <stat.icon size={120} className={`text-${stat.color}-400`} />
+              <stat.icon size={120} className={stat.color === 'emerald' ? 'text-accent' : `text-${stat.color}-400`} />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-[11px] uppercase tracking-[0.2em] mb-6" style={{ color: "var(--text-muted)" }}>
@@ -137,7 +137,7 @@ export function TeacherDashboard() {
               </p>
               <Link
                 to="/teacher/questions/create"
-                className="mt-8 font-bold text-[11px] uppercase border-b border-[#2df07b] pb-1 hover:text-[#2df07b] transition-colors"
+                className="mt-8 font-bold text-[11px] uppercase border-b border-accent pb-1 hover:text-accent transition-colors"
                 style={{ color: "var(--text-primary)" }}
               >
                 Create Question
@@ -215,7 +215,7 @@ export function TeacherDashboard() {
               </p>
               <Link
                 to="/teacher/tests/create"
-                className="mt-8 font-bold text-[11px] uppercase border-b border-[#2df07b] pb-1 hover:text-[#2df07b] transition-colors"
+                className="mt-8 font-bold text-[11px] uppercase border-b border-accent pb-1 hover:text-accent transition-colors"
                 style={{ color: "var(--text-primary)" }}
               >
                 Create Test
@@ -233,11 +233,11 @@ export function TeacherDashboard() {
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--card-border)"; }}
                 >
                   {/* Hover accent bar */}
-                  <div className="absolute top-0 left-0 h-full w-1 bg-[#2df07b] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute top-0 left-0 h-full w-1 bg-accent opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                   <div className="flex-1 min-w-0 pr-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${t.status === "ACTIVE" ? "bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20" : "bg-gray-500/10 border-gray-500/20"}`}
+                      <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${t.status === "ACTIVE" ? "bg-accent/10 text-accent border-accent/20" : "bg-gray-500/10 border-gray-500/20"}`}
                         style={t.status !== "ACTIVE" ? { color: "var(--text-muted)" } : {}}>
                         {t.status}
                       </span>
@@ -245,7 +245,7 @@ export function TeacherDashboard() {
                         ID: {t.id.slice(0, 8)}
                       </span>
                     </div>
-                    <p className="font-bold text-[16px] group-hover:text-[#2df07b] transition-colors uppercase tracking-tight truncate" style={{ color: "var(--text-primary)" }}>
+                    <p className="font-bold text-[16px] group-hover:text-accent transition-colors uppercase tracking-tight truncate" style={{ color: "var(--text-primary)" }}>
                       {t.name}
                     </p>
                     <div className="flex items-center gap-4 text-[10px] mt-2 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>

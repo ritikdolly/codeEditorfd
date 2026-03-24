@@ -92,7 +92,7 @@ export const DashboardLayout = () => {
             className="flex items-center gap-3"
             onClick={closeSidebar}
           >
-            <div className="bg-[#2df07b] p-1.5 rounded text-black transition-transform">
+            <div className="bg-accent p-1.5 rounded text-black transition-transform">
               <Code2 size={24} strokeWidth={2.5} />
             </div>
             <span
@@ -137,7 +137,7 @@ export const DashboardLayout = () => {
                   ? {
                       background: "var(--sidebar-active-bg)",
                       color: "var(--sidebar-active-text)",
-                      boxShadow: "0 4px 12px rgba(45,240,123,0.2)",
+                      boxShadow: "0 4px 12px var(--shadow-accent)",
                     }
                   : { color: "var(--sidebar-text-muted)" }
               }
@@ -218,7 +218,7 @@ export const DashboardLayout = () => {
 
   return (
     <div
-      className="flex h-screen w-full font-sans selection:bg-[#2df07b] selection:text-black overflow-hidden relative"
+      className="flex h-screen w-full font-sans selection:bg-accent selection:text-black overflow-hidden relative"
       style={{ background: "var(--bg-main)", color: "var(--text-primary)" }}
     >
       {/* Mobile Sidebar Overlay */}
@@ -255,7 +255,7 @@ export const DashboardLayout = () => {
               className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded"
               style={{ color: "var(--text-muted)", background: "var(--bg-secondary)", border: "1px solid var(--card-border)" }}
             >
-              <span className="text-[#2df07b] font-black mr-1">/</span>
+              <span className="text-accent font-black mr-1">/</span>
               {location.pathname.split("/")[2] || "Dashboard"}
             </div>
           </div>

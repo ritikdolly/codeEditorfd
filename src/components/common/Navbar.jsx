@@ -17,7 +17,7 @@ export default function Navbar() {
     <nav className="bg-white border-b border-gray-100 py-3 px-6 lg:px-12 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center h-10">
         <Link to="/" className="flex items-center gap-2">
-          <div className="bg-[#2df07b] p-1.5 rounded text-black flex items-center justify-center">
+          <div className="bg-accent p-1.5 rounded text-black flex items-center justify-center">
             <Code2 size={20} strokeWidth={2.5} />
           </div>
           <span className="font-bold text-lg tracking-tight text-gray-900 uppercase">CodeArena</span>
@@ -30,7 +30,7 @@ export default function Navbar() {
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-gray-900 leading-none">{user.name}</span>
-              <span className="text-[10px] font-bold text-[#2df07b] uppercase tracking-widest mt-0.5">
+              <span className="text-[10px] font-bold text-accent uppercase tracking-widest mt-0.5">
                 {user.role}
               </span>
             </div>

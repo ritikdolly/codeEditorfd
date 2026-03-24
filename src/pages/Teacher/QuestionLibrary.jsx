@@ -40,7 +40,7 @@ export function QuestionLibrary() {
   };
 
   const difficultyColor = {
-    EASY: "text-[#2df07b] bg-[#2df07b]/5 border-[#2df07b]/10",
+    EASY: "text-accent bg-accent/5 border-accent/10",
     MEDIUM: "text-amber-500 bg-amber-500/5 border-amber-500/10",
     HARD: "text-rose-500 bg-rose-500/5 border-rose-500/10",
   };
@@ -68,7 +68,7 @@ export function QuestionLibrary() {
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
           </button>
           <div>
-            <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
+            <div className="flex items-center gap-2 mb-2 text-accent">
                <BookOpen size={14} />
                <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Asset Repository</span>
             </div>
@@ -78,7 +78,7 @@ export function QuestionLibrary() {
         </div>
         <Link
           to="/teacher/questions/create"
-          className="flex items-center justify-center gap-3 bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg shadow-[#2df07b]/10 active:scale-95 uppercase tracking-widest text-[12px]"
+          className="flex items-center justify-center gap-3 bg-accent hover:bg-accent-dark text-black font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg shadow-accent/10 active:scale-95 uppercase tracking-widest text-[12px]"
         >
           <Plus size={18} strokeWidth={3} /> Authorize New Item
         </Link>
@@ -93,7 +93,7 @@ export function QuestionLibrary() {
             placeholder="Search vectors by title or context..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl py-3 pl-12 pr-6 focus:outline-none focus:border-[#2df07b] transition-all text-sm font-bold shadow-xl placeholder:text-gray-700 text-white"
+            className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl py-3 pl-12 pr-6 focus:outline-none focus:border-accent transition-all text-sm font-bold shadow-xl placeholder:text-gray-700 text-white"
           />
         </div>
         <div className="flex items-center gap-4 w-full md:w-auto">
@@ -117,7 +117,7 @@ export function QuestionLibrary() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-[280px] bg-[#111111] border border-white/5 rounded-2xl animate-pulse"></div>
+            <div key={i} className="h-70 bg-[#111111] border border-white/5 rounded-2xl animate-pulse"></div>
           ))}
         </div>
       ) : filteredQuestions.length === 0 ? (
@@ -142,7 +142,7 @@ export function QuestionLibrary() {
           {filteredQuestions.map((q) => (
             <div
               key={q.id}
-              className="group bg-[#111111] border border-white/10 hover:border-[#2df07b]/30 rounded-[32px] p-8 transition-all hover:shadow-2xl relative flex flex-col justify-between overflow-hidden shadow-xl"
+              className="group bg-[#111111] border border-white/10 hover:border-accent/30 rounded-4xl p-8 transition-all hover:shadow-2xl relative flex flex-col justify-between overflow-hidden shadow-xl"
             >
               <div className="absolute top-0 right-0 p-8 opacity-0 group-hover:opacity-[0.03] text-white transition-opacity pointer-events-none">
                  <Zap size={160} />
@@ -173,7 +173,7 @@ export function QuestionLibrary() {
                 <h3 className="text-xl font-bold text-white tracking-tight leading-tight mb-4 line-clamp-1 uppercase">
                   {q.title}
                 </h3>
-                <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-3 mb-8 h-[60px] font-medium">
+                <p className="text-gray-500 text-[13px] leading-relaxed line-clamp-3 mb-8 h-15 font-medium">
                   {q.description}
                 </p>
               </div>
@@ -181,7 +181,7 @@ export function QuestionLibrary() {
               <div className="flex items-center justify-between pt-6 border-t border-white/5 mt-4">
                 <div className="flex items-center gap-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                   <span className="flex items-center gap-2">
-                    <HelpCircle size={15} className="text-[#2df07b]" />
+                    <HelpCircle size={15} className="text-accent" />
                     {q.marks} Pts
                   </span>
                   <div className="w-1 h-1 rounded-full bg-white/10"></div>

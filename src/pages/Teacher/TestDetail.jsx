@@ -22,9 +22,9 @@ import {
   Download,
   Eye,
   QrCode,
-  CheckCircle,
   Settings,
   Loader2,
+  ShieldCheck,
 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import toast from 'react-hot-toast';
@@ -56,20 +56,12 @@ export const TestDetail = () => {
   const fetchTestData = async () => {
     try {
       setLoading(true);
-      const [questionsData, resultsData] = await Promise.all([
+      const [questionsData, resultsData, testData] = await Promise.all([
         teacherService.getTestQuestions(id),
-        teacherService.getTestResults(id)
+        teacherService.getTestResults(id),
+        teacherService.getTest(id)
       ]);
-      // Build a pseudo test object from the questions/results data
-      const testMeta = {
-        id,
-        name: questionsData?.[0]?.testName || `Test ${id.slice(0,8)}`,
-        duration: questionsData?.[0]?.testDuration || 60,
-        createdAt: new Date().toISOString(),
-        startTime: null,
-        endTime: null,
-      };
-      setTest(testMeta);
+      setTest(testData);
       setQuestions(questionsData || []);
       setResults(resultsData || []);
     } catch (error) {
@@ -148,12 +140,12 @@ export const TestDetail = () => {
 
   const SortHeader = ({ label, sortKey, align = 'left' }) => (
     <th
-      className={`px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-white/[0.05] transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
+      className={`px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
       onClick={() => handleSort(sortKey)}
     >
       <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : ''}`}>
         {label}
-        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-[#2df07b]' : 'text-gray-700'}`}>
+        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-accent' : 'text-gray-700'}`}>
           <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▴</span>
           <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▾</span>
         </span>
@@ -222,7 +214,7 @@ export const TestDetail = () => {
 
   if (loading || !test) return (
     <div className="p-6 flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2df07b]"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
     </div>
   );
 
@@ -234,214 +226,203 @@ export const TestDetail = () => {
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-10 pb-24 animate-in fade-in duration-700">
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-10 border-b border-white/5">
         <div>
-          <button onClick={() => navigate('/teacher')} className="flex items-center gap-2 text-slate-500 hover:text-[#2df07b] font-bold text-xs uppercase tracking-widest transition-colors mb-4 group">
+          <button onClick={() => navigate('/teacher')} className="flex items-center gap-2 text-slate-500 hover:text-accent font-bold text-xs uppercase tracking-widest transition-colors mb-4 group">
              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Dashboard
           </button>
+          <div className="flex items-center gap-3 mb-2 text-accent">
+            <ShieldCheck size={14} />
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Test Overview</span>
+          </div>
           <h1 className="text-4xl font-black text-white tracking-tight uppercase">
-            Test <span className="text-[#2df07b]">Detail</span>
+            {test?.name || 'Loading Test...'}
           </h1>
-          <p className="text-slate-400 mt-2 text-lg font-medium italic opacity-80">{test.name}</p>
+          <div className="flex items-center gap-4 mt-2">
+             <p className="text-gray-500 text-[15px] font-medium italic opacity-80 uppercase text-[10px] tracking-widest">ID: {test?.id?.slice(0,8)}</p>
+             {timeLeft && (
+                <div className={`flex items-center gap-2 px-3 py-1 rounded-lg border text-[10px] font-black uppercase tracking-widest ${timeLeft.includes('Ended') ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-accent/10 border-accent/20 text-accent'}`}>
+                   <Clock size={12} className={timeLeft.includes('Ended') ? 'text-rose-500' : 'text-accent animate-pulse'} />
+                   {timeLeft}
+                </div>
+             )}
+          </div>
         </div>
         <div className="flex items-center gap-4">
            <button 
               onClick={() => navigate(`/teacher/monitor/${id}`)}
-              className="flex items-center gap-3 bg-black border border-white/5 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:border-[#2df07b] hover:bg-[#2df07b]/5 transition-all shadow-xl group"
+              className="flex items-center gap-3 bg-black border border-white/5 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:border-accent hover:bg-accent/5 transition-all shadow-xl group"
             >
-              <Layout size={18} className="text-[#2df07b] group-hover:scale-110 transition-transform" />
+              <Layout size={18} className="text-accent group-hover:scale-110 transition-transform" />
               Live Monitor
             </button>
             <button 
               onClick={copyTestLink}
-              className="flex items-center gap-3 bg-[#2df07b] text-black px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(45,240,123,0.3)]"
+              className="flex items-center gap-3 bg-accent text-black px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-accent/20"
             >
-              <Share2 size={18} />
-              Share Test
+              <Copy size={18} />
+              Share Access
             </button>
         </div>
       </header>
 
-      {/* Analytics Widgets */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: 'Appeared', val: analytics.totalStudentsAppeared, color: 'emerald', icon: Users, desc: 'Active Participants' },
-          { label: 'Completed', val: analytics.totalStudentsCompleted, color: 'blue', icon: BarChart3, desc: 'Final Submissions' },
-          { label: 'Passed', val: analytics.totalStudentsPassed, color: 'emerald', icon: CheckCircle, desc: 'Above Threshold' },
-          { label: 'Failed', val: analytics.totalStudentsFailed, color: 'rose', icon: XCircle, desc: 'Needs Review' }
-        ].map((stat, i) => (
-          <div key={i} className="glass-card p-6 border border-slate-800/50 hover:border-slate-700 transition-all group overflow-hidden relative">
-            <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-all duration-500 group-hover:scale-110">
-               <stat.icon size={100} className={`text-${stat.color}-400`} />
-            </div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className={`p-2 rounded-xl bg-${stat.color}-500/10 border border-${stat.color}-500/20 shadow-lg`}>
-                <stat.icon size={18} className={`text-${stat.color}-400`} strokeWidth={2.5} />
-              </div>
-              <span className="text-slate-500 text-[11px] font-black uppercase tracking-widest">{stat.label}</span>
-            </div>
-            <div>
-              <p className="text-4xl font-black text-white leading-none tracking-tighter">{stat.val || 0}</p>
-              <p className="text-[10px] text-slate-500 font-bold mt-2 uppercase tracking-tight italic opacity-60 flex items-center gap-1.5">
-                 <div className={`w-1 h-1 rounded-full bg-${stat.color}-500`}></div> {stat.desc}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-
+      {/* Main Grid Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         
-        {/* Main Content: Results Table */}
-        <div className="lg:col-span-8 space-y-8">
-          <div className="glass-card border border-white/5 shadow-2xl overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#2df07b]/30 to-transparent"></div>
-            
-            <div className="px-8 py-6 border-b border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 bg-slate-900/40">
-              <div className="flex items-center gap-4">
-                <div className="p-2 bg-[#2df07b]/10 rounded-lg">
-                   <Users size={18} className="text-[#2df07b]" />
-                </div>
-                <div>
-                   <h2 className="text-[12px] font-black text-white uppercase tracking-widest">Student Results</h2>
-                   <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">Total: <span className="text-[#2df07b]">{processedResults.length}</span> Submissions</p>
-                </div>
+        {/* Main Content Area (2/3) */}
+        <div className="lg:col-span-8 space-y-10">
+          
+          {/* Analytics Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+             {[
+               { label: 'Registered', val: analytics.totalStudentsRegistered, icon: Users, color: 'blue' },
+               { label: 'Appeared', val: analytics.totalStudentsAppeared, icon: Trophy, color: 'accent' },
+               { label: 'Passed', val: analytics.totalStudentsPassed, icon: CheckCircle2, color: 'emerald' },
+               { label: 'Failed', val: analytics.totalStudentsFailed, icon: XCircle, color: 'rose' }
+             ].map((stat, i) => (
+               <div key={i} className="glass-card p-6 border border-white/5 flex flex-col gap-4 relative overflow-hidden group hover:border-accent/20 transition-all">
+                  <div className={`absolute -right-2 -bottom-2 opacity-5 scale-150 rotate-12 group-hover:scale-[1.7] transition-transform ${stat.color === 'accent' ? 'text-accent' : `text-${stat.color}-400`}`}>
+                     <stat.icon size={48} />
+                  </div>
+                  <div className="flex items-center justify-between">
+                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stat.label}</span>
+                     <stat.icon size={16} className={stat.color === 'accent' ? 'text-accent' : `text-${stat.color}-400`} />
+                  </div>
+                  <p className="text-3xl font-black text-white">{stat.val}</p>
+               </div>
+             ))}
+          </div>
+
+          {/* Filters & Students Table */}
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="relative w-full sm:w-80">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
+                <input
+                  type="text"
+                  placeholder="Filter by name..."
+                  className="w-full bg-slate-900/50 border border-white/5 py-3 pl-12 pr-4 rounded-xl text-sm font-medium focus:outline-none focus:ring-1 focus:ring-accent/30 transition-all uppercase tracking-tight placeholder:text-slate-700"
+                  value={filterQuery}
+                  onChange={(e) => setFilterQuery(e.target.value)}
+                />
               </div>
-              
-              <div className="flex items-center gap-4 w-full sm:w-auto">
-                <div className="relative flex-1 sm:flex-none">
-                  <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
-                  <input
-                    className="w-full sm:w-64 bg-slate-950 border border-white/5 rounded-xl text-[12px] font-bold text-white px-6 py-2.5 pl-11 focus:outline-none focus:border-[#2df07b]/50 transition-all placeholder:text-slate-800"
-                    value={filterQuery}
-                    onChange={(e) => setFilterQuery(e.target.value)}
-                    placeholder="FIND STUDENT..."
-                  />
-                </div>
-                <button 
-                  onClick={downloadResultsCSV} 
-                  disabled={results.length === 0}
-                  className="p-2.5 bg-[#2df07b]/10 text-[#2df07b] border border-[#2df07b]/20 hover:bg-[#2df07b] hover:text-black rounded-xl transition-all disabled:opacity-30"
-                  title="Export Data"
-                >
-                  <Download size={18} />
-                </button>
-              </div>
+              <button 
+                onClick={downloadResultsCSV}
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all w-full sm:w-auto overflow-hidden group"
+              >
+                <Download size={16} className="group-hover:translate-y-0.5 transition-transform" /> 
+                Download CSV
+              </button>
             </div>
 
-            <div className="overflow-x-auto custom-scrollbar">
+            <div className="glass-card border border-white/5 overflow-hidden">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-white/5">
+                  <tr className="bg-white/2 border-b border-white/5 uppercase select-none">
                     <th className="px-6 py-5 w-10"></th>
-                    <SortHeader label="STUDENT NAME" sortKey="studentName" />
-                    <SortHeader label="SUBMISSION" sortKey="submissionStatus" align="center" />
-                    <SortHeader label="SCORE" sortKey="totalScore" />
-                    <SortHeader label="ACCURACY" sortKey="overallAccuracy" />
-                    <SortHeader label="STATUS" sortKey="status" />
+                    <SortHeader label="Student Account" sortKey="studentName" />
+                    <SortHeader label="Score" sortKey="totalScore" align="center" />
+                    <SortHeader label="Accuracy" sortKey="overallAccuracy" align="center" />
+                    <SortHeader label="Status" sortKey="status" align="center" />
+                    <th className="px-6 py-5"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.02]">
+                <tbody className="divide-y divide-white/2">
                   {processedResults.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="px-6 py-20 text-center">
-                         <div className="flex flex-col items-center gap-4 opacity-40">
-                            <Users size={40} className="text-slate-700" strokeWidth={1} />
-                            <p className="text-xs font-black uppercase tracking-widest text-slate-600">No submissions found.</p>
-                         </div>
+                      <td colSpan="6" className="px-6 py-12 text-center text-slate-600 italic font-bold uppercase tracking-widest">
+                        Zero students found matching this criteria
                       </td>
                     </tr>
                   ) : (
-                    processedResults.map((r) => (
+                    processedResults.map(r => (
                       <React.Fragment key={r.studentId}>
-                          <tr 
-                              className={`hover:bg-white/[0.02] cursor-pointer transition-all group ${expandedStudentId === r.studentId ? 'bg-[#2df07b]/5' : ''}`}
-                              onClick={() => toggleStudentExpansion(r.studentId)}
-                          >
-                            <td className="px-6 py-5">
-                               <div className={`p-1 rounded transition-colors ${expandedStudentId === r.studentId ? 'text-[#2df07b]' : 'text-slate-600'}`}>
-                                  {expandedStudentId === r.studentId ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                        <tr 
+                          className={`hover:bg-white/1 transition-all cursor-pointer group ${expandedStudentId === r.studentId ? 'bg-accent/5' : ''}`}
+                          onClick={() => toggleStudentExpansion(r.studentId)}
+                        >
+                          <td className="px-6 py-5">
+                             <div className={`p-1 rounded transition-colors ${expandedStudentId === r.studentId ? 'text-accent' : 'text-slate-600'}`}>
+                                {expandedStudentId === r.studentId ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                             </div>
+                          </td>
+                          <td className="px-6 py-5">
+                            <div className="flex items-center gap-4">
+                               <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center font-black text-slate-600 group-hover:text-accent transition-colors">
+                                  {r.studentName?.charAt(0)}
                                </div>
-                            </td>
-                            <td className="px-6 py-5">
-                              <p className="text-white font-black text-sm uppercase tracking-tight group-hover:text-[#2df07b] transition-colors">{r.studentName}</p>
-                              <p className="text-slate-600 text-[10px] font-bold tracking-tighter mt-0.5">{r.studentEmail}</p>
-                            </td>
-                            <td className="px-6 py-5 text-center">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.1em] border ${r.submissionStatus === 'SUBMITTED' ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20 animate-pulse'}`}>
-                                {r.submissionStatus === 'SUBMITTED' ? 'Submitted' : 'In Progress'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-5 font-mono text-white font-black text-sm tracking-tighter">
-                              {r.totalScore?.toFixed(1)} <span className="text-slate-700 text-[11px] font-bold">/ {totalMarks}</span>
-                            </td>
-                            <td className="px-6 py-5 font-mono text-slate-400 font-bold text-sm tracking-tighter">
-                              {r.overallAccuracy?.toFixed(1)}%
-                            </td>
-                            <td className="px-6 py-5">
-                              <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border flex items-center justify-center w-24 gap-1.5 ${r.status === 'Pass' || r.status === 'Passed' ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
-                                {r.status === 'Pass' || r.status === 'Passed' ? <CheckCircle size={10} /> : <XCircle size={10} />}
-                                {r.status}
-                              </span>
-                            </td>
-                          </tr>
-                          
-                          {/* Expanded Details Row */}
-                          {expandedStudentId === r.studentId && (
-                            <tr className="bg-slate-950/40">
-                              <td colSpan="6" className="p-0 border-l-[3px] border-[#2df07b]">
-                                  <div className="p-8">
-                                      <div className="flex items-center gap-3 mb-6">
-                                         <div className="w-1.5 h-1.5 rounded-full bg-[#2df07b] shadow-[0_0_8px_rgba(45,240,123,0.8)] animate-pulse"></div>
-                                         <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Question Breakdown</h4>
-                                      </div>
-                                      
-                                      {loadingDetails && !studentDetails[r.studentId] ? (
-                                          <div className="flex items-center gap-3 py-4 text-slate-500">
-                                              <Loader2 className="animate-spin h-4 w-4 text-[#2df07b]" />
-                                              <span className="text-[10px] font-black uppercase tracking-widest">Loading results...</span>
+                               <div>
+                                  <p className="text-sm font-black text-white uppercase tracking-tight">{r.studentName}</p>
+                                  <p className="text-[10px] font-medium text-slate-600 truncate max-w-35 italic">{r.studentEmail}</p>
+                               </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-5 text-center font-bold font-mono text-white text-base">
+                             {r.totalScore?.toFixed(1) || 0}
+                          </td>
+                          <td className="px-6 py-5 text-center">
+                             <span className="text-xs font-black text-slate-500">{r.overallAccuracy?.toFixed(1) || 0}%</span>
+                          </td>
+                          <td className="px-6 py-5 text-center">
+                            <span className={`inline-flex px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
+                               r.status === 'Pass' || r.status === 'Passed'
+                                 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                 : r.status === 'Fail' || r.status === 'Failed'
+                                 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                                 : 'bg-white/5 text-gray-400 border-white/5'
+                            }`}>
+                               {r.status || 'Ungraded'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 text-right">
+                             <div className={`p-2 rounded-lg transition-transform ${expandedStudentId === r.studentId ? 'rotate-180 text-accent' : 'text-slate-800 group-hover:text-slate-500'}`}>
+                                <ChevronDown size={20} />
+                             </div>
+                          </td>
+                        </tr>
+
+                        {expandedStudentId === r.studentId && (
+                           <tr>
+                             <td colSpan="6" className="px-8 py-0 border-b border-white/5 bg-slate-950/40">
+                               <div className="py-8 space-y-8 animate-in slide-in-from-top-4 duration-500 px-4">
+                                  {loadingDetails && !studentDetails[r.studentId] ? (
+                                    <div className="flex flex-col items-center justify-center p-12 gap-4">
+                                       <Loader2 className="animate-spin text-accent" size={24} />
+                                       <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Parsing submission metadata...</p>
+                                    </div>
+                                  ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                                       {(studentDetails[r.studentId] || []).map((q, qIndex) => (
+                                          <div key={qIndex} className="space-y-4 bg-slate-950 p-6 rounded-3xl border border-white/5 hover:border-accent/20 transition-all">
+                                             <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                                <h4 className="text-[11px] font-black text-white uppercase tracking-widest">{q.questionTitle || `Question ${qIndex + 1}`}</h4>
+                                                <span className={`text-[10px] font-bold ${q.passed ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                   {q.passed ? 'PASSED' : 'FAILED'}
+                                                </span>
+                                             </div>
+                                             <div className="space-y-1.5 font-mono">
+                                                <div className="flex justify-between text-[9px]">
+                                                   <span className="text-slate-600 uppercase">Input Code</span>
+                                                   <span className="text-slate-400">Lines: {q.code?.split('\n').length || 0}</span>
+                                                </div>
+                                                <pre className="text-xs bg-slate-900/50 p-4 rounded-xl border border-white/5 text-slate-300 overflow-x-auto max-h-40 custom-scrollbar whitespace-pre-wrap leading-relaxed">
+                                                   {q.code || 'No code submitted.'}
+                                                </pre>
+                                             </div>
+                                             {q.error && (
+                                                <div className="p-3 bg-rose-500/5 border border-rose-500/10 rounded-xl">
+                                                   <p className="text-[9px] font-bold text-rose-500 uppercase tracking-widest mb-1 text-center italic">Compile Error</p>
+                                                   <pre className="text-[10px] text-rose-300 whitespace-pre-wrap opacity-80">{q.error}</pre>
+                                                </div>
+                                             )}
                                           </div>
-                                      ) : !studentDetails[r.studentId] || studentDetails[r.studentId].length === 0 ? (
-                                          <div className="text-[11px] text-slate-700 italic font-medium p-4 border border-dashed border-slate-800 rounded-2xl">No data found for this student.</div>
-                                      ) : (
-                                          <div className="grid gap-3">
-                                              {studentDetails[r.studentId].map(detail => (
-                                                  <div key={detail.submissionId} className="bg-slate-950 border border-white/5 p-5 rounded-2xl hover:border-slate-700 transition-all flex items-center justify-between group/q">
-                                                      <div className="flex items-center gap-4">
-                                                         <div className="w-8 h-8 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-slate-700 group-hover/q:text-[#2df07b] transition-colors">
-                                                            {detail.questionTitle.charAt(0)}
-                                                         </div>
-                                                         <div>
-                                                            <p className="text-sm font-bold text-white uppercase tracking-tight">{detail.questionTitle}</p>
-                                                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-tighter mt-1 italic">
-                                                              {new Date(detail.submissionTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • SUBMITTED
-                                                            </p>
-                                                         </div>
-                                                      </div>
-                                                      <div className="flex items-center gap-12 text-right">
-                                                         <div>
-                                                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-tighter mb-0.5">Accuracy</p>
-                                                            <p className="text-sm font-mono text-slate-400 font-bold">{detail.accuracy}%</p>
-                                                         </div>
-                                                         <div className="w-20">
-                                                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-tighter mb-0.5">Points</p>
-                                                            <p className="text-sm font-mono text-white font-bold">{detail.score?.toFixed(1)}</p>
-                                                         </div>
-                                                         <div className="w-24 flex flex-col items-end">
-                                                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-tighter mb-0.5">Status</p>
-                                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border ${detail.status === 'Pass' || detail.status === 'Passed' ? 'text-[#2df07b] border-[#2df07b]/20 bg-[#2df07b]/5' : 'text-rose-500 border-rose-500/20 bg-rose-500/5'}`}>
-                                                              {detail.status}
-                                                            </span>
-                                                         </div>
-                                                      </div>
-                                                  </div>
-                                              ))}
-                                          </div>
-                                      )}
-                                  </div>
-                              </td>
-                            </tr>
-                          )}
+                                       ))}
+                                    </div>
+                                  )}
+                               </div>
+                             </td>
+                           </tr>
+                        )}
                       </React.Fragment>
                     ))
                   )}
@@ -455,13 +436,13 @@ export const TestDetail = () => {
         <aside className="lg:col-span-4 space-y-8">
            {/* Test Statistics */}
            <div className="glass-card border border-white/5 shadow-2xl p-8 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Settings size={120} className="text-purple-400" />
+              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity text-accent">
+                <Settings size={120} />
               </div>
               
               <div className="flex items-center gap-4 mb-8 relative z-10">
-                <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                  <Clock size={20} className="text-purple-400" strokeWidth={2.5} />
+                <div className="p-2.5 rounded-xl bg-accent/10 border border-accent/20">
+                  <Clock size={20} className="text-accent" strokeWidth={2.5} />
                 </div>
                 <div>
                    <h3 className="text-[13px] font-black text-white uppercase tracking-widest leading-none">Test Details</h3>
@@ -471,13 +452,13 @@ export const TestDetail = () => {
 
               <div className="space-y-6 relative z-10">
                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-1.5">
-                       <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Time Limit</p>
-                       <p className="text-xl font-black text-white">{test.duration} <span className="text-[10px] text-slate-600">MINS</span></p>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-0.5">Time Limit</p>
+                      <p className="text-xl font-bold text-white tracking-tight">{test?.duration || 0} <span className="text-[10px] text-gray-600">MIN</span></p>
                     </div>
                     <div className="space-y-1.5">
                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Marks</p>
-                       <p className="text-xl font-black text-white">{totalMarks} <span className="text-[10px] text-slate-600">MARKS</span></p>
+                       <p className="text-xl font-black text-white">{totalMarks} <span className="text-[10px] text-gray-600">MARKS</span></p>
                     </div>
                  </div>
                  
@@ -493,14 +474,8 @@ export const TestDetail = () => {
 
                  <div className="pt-2 border-t border-white/5 space-y-4">
                     <div className="space-y-1">
-                       <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Link Active</p>
+                       <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Access Link</p>
                        <p className="text-[11px] font-bold text-slate-300 font-mono truncate bg-slate-950 p-2 rounded-lg border border-white/5">{testLink}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <div className={`p-1.5 rounded-lg border flex items-center gap-2 ${timeLeft.includes('Ended') ? 'bg-rose-500/5 border-rose-500/20 text-rose-500' : 'bg-[#2df07b]/5 border-[#2df07b]/20 text-[#2df07b]'}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${timeLeft.includes('Ended') ? 'bg-rose-500' : 'bg-[#2df07b] animate-pulse'}`}></div>
-                          <span className="text-[10px] font-black uppercase tracking-widest">{timeLeft || 'CALCULATING...'}</span>
-                       </div>
                     </div>
                  </div>
               </div>
@@ -509,22 +484,22 @@ export const TestDetail = () => {
            {/* Test QR Code */}
            <div className="glass-card border border-white/5 shadow-2xl p-8 flex flex-col items-center">
               <div className="flex items-center gap-3 mb-8 w-full border-b border-white/5 pb-4">
-                 <QrCode size={18} className="text-[#2df07b]" />
-                 <h3 className="text-[12px] font-black text-white uppercase tracking-widest">Test Link & QR Code</h3>
+                 <QrCode size={18} className="text-accent" />
+                 <h3 className="text-[12px] font-black text-white uppercase tracking-widest">QR Access</h3>
               </div>
               
-              <div className="p-5 bg-white rounded-[28px] shadow-[0_0_50px_rgba(255,255,255,0.08)] group hover:scale-[1.02] transition-transform duration-500">
+              <div className="p-5 bg-white rounded-[28px] shadow-xl group hover:scale-[1.02] transition-transform duration-500">
                 <QRCode value={testLink} size={150} level="H" fgColor="#000000" />
               </div>
               
               <div className="mt-8 grid grid-cols-2 gap-4 w-full">
-                 <button onClick={copyTestLink} className="flex-1 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 py-4 rounded-2xl flex flex-col items-center gap-2 transition-all">
+                 <button onClick={copyTestLink} className="flex-1 bg-white/3 hover:bg-white/8 border border-white/5 py-4 rounded-2xl flex flex-col items-center gap-2 transition-all">
                     <Copy size={20} className="text-slate-400" />
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Copy Link</span>
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Copy</span>
                  </button>
-                 <button onClick={() => window.print()} className="flex-1 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 py-4 rounded-2xl flex flex-col items-center gap-2 transition-all">
+                 <button onClick={() => window.print()} className="flex-1 bg-white/3 hover:bg-white/8 border border-white/5 py-4 rounded-2xl flex flex-col items-center gap-2 transition-all">
                     <Share2 size={20} className="text-slate-400" />
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Print Page</span>
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Print</span>
                  </button>
               </div>
            </div>
@@ -533,29 +508,25 @@ export const TestDetail = () => {
            <div className="glass-card border border-white/5 shadow-2xl p-8">
               <div className="flex items-center justify-between mb-8">
                  <div className="flex items-center gap-3">
-                    <BookOpen size={18} className="text-[#2df07b]" />
-                    <h3 className="text-[12px] font-black text-white uppercase tracking-widest">Questions List</h3>
+                    <BookOpen size={18} className="text-accent" />
+                    <h3 className="text-[12px] font-black text-white uppercase tracking-widest">Question Bank</h3>
                  </div>
-                 <span className="bg-[#2df07b]/10 text-[#2df07b] text-[10px] font-black px-2.5 py-1 rounded-full">{questions.length} Questions</span>
+                 <span className="bg-accent/10 text-accent text-[10px] font-black px-2.5 py-1 rounded-full">{questions.length}</span>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-2 text-white">
                  {questions.map((q, i) => (
-                   <div key={q.questionId || q.id || i} className="group p-5 bg-slate-950 border border-white/5 rounded-2xl hover:border-[#2df07b]/30 transition-all flex items-center justify-between cursor-pointer">
-                      <div className="flex items-center gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-[11px] font-black text-slate-600 group-hover:text-white transition-colors">
-                            {String(i + 1).padStart(2, '0')}
-                         </div>
-                         <div>
-                            <p className="text-[12px] font-black text-white uppercase tracking-tight group-hover:text-[#2df07b] transition-colors">{q.title}</p>
-                            <div className="flex items-center gap-3 mt-1.5 opacity-50">
-                               <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{q.marks} PTS</span>
-                               <div className="w-1 h-1 rounded-full bg-slate-800"></div>
-                               <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">{q.difficulty || 'STD'}</span>
-                            </div>
-                         </div>
-                      </div>
-                      <ExternalLink size={14} className="text-slate-800 group-hover:text-white transition-all transform group-hover:translate-x-1" />
-                   </div>
+                    <div key={q.id || i} className="group p-5 bg-slate-950 border border-white/5 rounded-2xl hover:border-accent/30 transition-all flex items-center justify-between cursor-pointer">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-[11px] font-black text-slate-600 group-hover:text-white transition-colors">
+                             {String(i + 1).padStart(2, '0')}
+                          </div>
+                          <div>
+                             <p className="text-[12px] font-black text-white uppercase tracking-tight group-hover:text-accent transition-colors truncate max-w-30">{q.title}</p>
+                             <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">{q.marks} PTS</p>
+                          </div>
+                       </div>
+                       <ExternalLink size={14} className="text-slate-800 group-hover:text-white transition-all transform group-hover:translate-x-1" />
+                    </div>
                  ))}
               </div>
            </div>

@@ -7,7 +7,7 @@ export const Home = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#09090b] font-sans text-gray-100 selection:bg-[#2df07b] selection:text-black relative">
+    <div className="min-h-screen bg-[#09090b] font-sans text-gray-100 selection:bg-accent selection:text-black relative">
       {/* ─── Top Navigation Bar ─── */}
       <nav className="flex items-center justify-between px-6 lg:px-12 py-5 bg-[#09090b] border-b border-white/5 sticky top-0 z-50">
         <div className="flex items-center gap-10">
@@ -55,7 +55,7 @@ export const Home = () => {
           </Link>
           <Link
             to="/register"
-            className="bg-[#2df07b] hover:bg-[#25c464] text-black text-[14px] font-bold py-2 px-5 rounded transition-colors shadow-lg shadow-[#2df07b]/20"
+            className="bg-accent hover:bg-accent-dark text-black text-[14px] font-bold py-2 px-5 rounded transition-colors shadow-lg shadow-accent/20"
           >
             Create Account
           </Link>
@@ -105,7 +105,7 @@ export const Home = () => {
             </Link>
             <Link
               to="/register"
-              className="bg-[#2df07b] text-black text-center font-bold py-3 rounded"
+              className="bg-accent text-black text-center font-bold py-3 rounded"
             >
               Create Account
             </Link>
@@ -143,7 +143,7 @@ export const Home = () => {
           <div className="lg:w-1/2 flex justify-center lg:justify-end">
             <div className="relative w-full max-w-lg mt-8 lg:mt-0">
               {/* Subtle green glow behind the image */}
-              <div className="absolute inset-0 bg-[#2df07b]/20 blur-[80px] rounded-full pointer-events-none"></div>
+              <div className="absolute inset-0 bg-accent/20 blur-[80px] rounded-full pointer-events-none"></div>
 
               <img
                 src={myImage}
@@ -193,8 +193,8 @@ export const Home = () => {
                 </div>
               </div>
               <div className="col-span-2 bg-[#111111] border border-white/10 rounded p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-[#2df07b]/5 blur-[60px] rounded-full"></div>
-                <div className="text-[14px] font-medium text-[#2df07b] mb-2 uppercase tracking-widest">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-[60px] rounded-full"></div>
+                <div className="text-[14px] font-medium text-accent mb-2 uppercase tracking-widest">
                   Global Reach
                 </div>
                 <div className="text-[40px] font-bold text-white leading-none">
@@ -229,10 +229,10 @@ export const Home = () => {
             </div>
             <div className="p-8 flex-1 flex flex-col">
               <p className="text-gray-400 mb-8 flex-1 text-[15px] leading-relaxed">
-                Master the fundamentals of logic, syntax, and basic problem
+                 Master the fundamentals of logic, syntax, and basic problem
                 solving in a guided environment.
               </p>
-              <span className="text-[#2df07b] font-medium flex items-center gap-2 group-hover:gap-3 transition-all text-[15px]">
+              <span className="text-accent font-medium flex items-center gap-2 group-hover:gap-3 transition-all text-[15px]">
                 Start Path <ArrowRight size={18} />
               </span>
             </div>
@@ -241,7 +241,7 @@ export const Home = () => {
           {/* Path 2 */}
           <div className="group bg-[#111111] rounded border border-white/10 flex flex-col cursor-pointer hover:border-white/20 transition-all">
             <div className="h-48 bg-[#0a0a0a] border-b border-white/5 flex items-center justify-center p-6 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#2df07b]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <h3 className="relative z-10 text-2xl font-bold text-white tracking-tight">
                 Intermediate
               </h3>
@@ -251,7 +251,7 @@ export const Home = () => {
                 Transition to complex text-based programming while building real
                 apps and microservices.
               </p>
-              <span className="text-[#2df07b] font-medium flex items-center gap-2 group-hover:gap-3 transition-all text-[15px]">
+              <span className="text-accent font-medium flex items-center gap-2 group-hover:gap-3 transition-all text-[15px]">
                 Start Path <ArrowRight size={18} />
               </span>
             </div>
@@ -270,7 +270,7 @@ export const Home = () => {
                 Advanced data structures, cloud architecture, and AI/Machine
                 Learning concepts for career prep.
               </p>
-              <span className="text-[#2df07b] font-medium flex items-center gap-2 group-hover:gap-3 transition-all text-[15px]">
+              <span className="text-accent font-medium flex items-center gap-2 group-hover:gap-3 transition-all text-[15px]">
                 Start Path <ArrowRight size={18} />
               </span>
             </div>
@@ -281,7 +281,7 @@ export const Home = () => {
       {/* ─── CTA Banner ─── */}
       <section className="bg-[#111111] border-y border-white/10 py-20">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#2df07b]/30 bg-[#2df07b]/10 text-[#2df07b] font-medium text-xs mb-6 tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent/30 bg-accent/10 text-accent font-medium text-xs mb-6 tracking-wide uppercase">
             <MonitorPlay size={14} /> Available Now
           </div>
           <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-6 tracking-tight">

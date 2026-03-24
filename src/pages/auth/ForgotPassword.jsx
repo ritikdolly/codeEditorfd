@@ -50,7 +50,7 @@ export function ForgotPassword() {
         <div className="max-w-md w-full mx-auto md:ml-0 md:mr-auto">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-12">
-            <span className="text-[#2df07b] font-bold text-xl">&lt;/&gt;</span>
+            <span className="text-accent font-bold text-xl">&lt;/&gt;</span>
             <span className="text-xl font-bold tracking-tight text-white">CodeArena_</span>
           </div>
 
@@ -59,7 +59,7 @@ export function ForgotPassword() {
             <h1 className="text-[44px] md:text-[56px] font-bold leading-[1.15] text-white">
               Recover <br />
               Your <br />
-              <span className="inline-block text-[#2df07b] border-2 border-[#2df07b] rounded-xl px-4 py-1 mt-3">
+              <span className="inline-block text-accent border-2 border-accent rounded-xl px-4 py-1 mt-3">
                 Account
               </span>
             </h1>
@@ -68,15 +68,15 @@ export function ForgotPassword() {
           {/* Feature Points */}
           <ul className="space-y-4 text-gray-200 text-sm">
             <li className="flex items-center gap-4">
-              <div className="w-2 h-2 rounded-full bg-[#2df07b] shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-accent shrink-0"></div>
               We'll send an OTP to your registered email
             </li>
             <li className="flex items-center gap-4">
-              <div className="w-2 h-2 rounded-full bg-[#2df07b] shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-accent shrink-0"></div>
               Set a new secure password instantly
             </li>
             <li className="flex items-center gap-4">
-              <div className="w-2 h-2 rounded-full bg-[#2df07b] shrink-0"></div>
+              <div className="w-2 h-2 rounded-full bg-accent shrink-0"></div>
               Get back to coding in seconds
             </li>
           </ul>
@@ -98,7 +98,7 @@ export function ForgotPassword() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Email address</label>
                 <input
-                  className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors placeholder:text-gray-400"
+                  className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors placeholder:text-gray-400"
                   type="email"
                   placeholder="you@example.com"
                   value={email}
@@ -111,14 +111,14 @@ export function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-6 rounded-full transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-sm"
+                  className="w-full bg-accent hover:bg-accent-dark text-black font-bold py-3.5 px-6 rounded-full transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-sm"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                   {loading ? 'Sending...' : 'Send Recovery OTP'}
                 </button>
                 <Link
                   to="/login"
-                  className="w-full bg-black hover:bg-gray-900 text-[#2df07b] font-bold py-3.5 px-6 rounded-full transition-all flex items-center justify-center text-sm shadow-sm active:scale-95"
+                  className="w-full bg-black hover:bg-gray-900 text-accent font-bold py-3.5 px-6 rounded-full transition-all flex items-center justify-center text-sm shadow-sm active:scale-95"
                 >
                   Back to Sign In
                 </Link>
@@ -126,14 +126,14 @@ export function ForgotPassword() {
             </form>
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-6">
-              <div className="bg-[#2df07b]/10 border border-[#2df07b]/20 p-4 rounded-2xl text-slate-700 text-sm">
+              <div className="bg-accent/10 border border-accent/20 p-4 rounded-2xl text-slate-700 text-sm">
                 Enter the 6-digit OTP sent to <strong>{email}</strong> and your new password.
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Recovery OTP</label>
                 <input
-                  className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 tracking-[0.4em] text-center text-lg focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors placeholder:text-gray-400 placeholder:tracking-[0.4em] font-mono"
+                  className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 tracking-[0.4em] text-center text-lg focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors placeholder:text-gray-400 placeholder:tracking-[0.4em] font-mono"
                   type="text"
                   placeholder="------"
                   maxLength={6}
@@ -147,7 +147,7 @@ export function ForgotPassword() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">New Password</label>
                 <div className="relative">
                   <input
-                    className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors pr-12 placeholder:text-gray-400"
+                    className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors pr-12 placeholder:text-gray-400"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Min 6 characters"
                     value={newPassword}
@@ -169,7 +169,7 @@ export function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading || otp.length < 6 || newPassword.length < 6}
-                  className="w-full bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-6 rounded-full transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-sm disabled:opacity-60"
+                  className="w-full bg-accent hover:bg-accent-dark text-black font-bold py-3.5 px-6 rounded-full transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-sm disabled:opacity-60"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                   {loading ? 'Resetting...' : 'Reset Password'}
@@ -177,7 +177,7 @@ export function ForgotPassword() {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  className="w-full bg-black hover:bg-gray-900 text-[#2df07b] font-bold py-3.5 px-6 rounded-full transition-all flex items-center justify-center text-sm shadow-sm active:scale-95"
+                  className="w-full bg-black hover:bg-gray-900 text-accent font-bold py-3.5 px-6 rounded-full transition-all flex items-center justify-center text-sm shadow-sm active:scale-95"
                 >
                   Use a different email
                 </button>

@@ -104,7 +104,7 @@ export function CreateQuestion() {
     <div className="p-8 max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <button onClick={() => navigate('/teacher/questions')} className="flex items-center gap-2 text-slate-500 hover:text-purple-400 font-bold text-xs uppercase tracking-widest transition-colors mb-4 group">
+          <button onClick={() => navigate('/teacher/questions')} className="flex items-center gap-2 text-slate-500 hover:text-accent font-bold text-xs uppercase tracking-widest transition-colors mb-4 group">
              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back to Questions
           </button>
           <h1 className="text-4xl font-black text-white tracking-tight leading-tight">{id ? 'Edit Question' : 'Create Question'}</h1>
@@ -115,13 +115,13 @@ export function CreateQuestion() {
       <form onSubmit={handleSubmit} className="space-y-10">
         {/* Core Metadata Section */}
         <div className="glass-card p-8 border border-slate-700/50 shadow-2xl relative overflow-hidden group bg-slate-900/40">
-           <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
-              <BookOpen size={120} className="text-purple-400" />
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <BookOpen size={120} className="text-accent" />
            </div>
 
            <div className="flex items-center gap-3 mb-8 relative z-10">
-              <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 shadow-lg shadow-purple-500/5">
-                <BookOpen size={24} className="text-purple-400" />
+              <div className="bg-accent/10 border border-accent/20 p-4 rounded-2xl shadow-xl shadow-accent/5 backdrop-blur-xl">
+                <BookOpen size={24} className="text-accent" />
               </div>
               <h2 className="text-2xl font-black text-white tracking-tight">Question Details</h2>
            </div>
@@ -131,7 +131,7 @@ export function CreateQuestion() {
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                    Title <span className="text-rose-500">*</span>
                 </label>
-                <input className="field-input py-4 px-6 bg-slate-950/50 border-slate-700 focus:border-purple-500 text-lg font-bold placeholder:text-slate-700" required value={form.title}
+                <input className="field-input py-4 px-6 bg-slate-950/50 border-slate-700 focus:border-accent text-lg font-bold placeholder:text-slate-700" required value={form.title}
                   onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. Reverse Linked List" />
               </div>
 
@@ -139,7 +139,7 @@ export function CreateQuestion() {
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                    Description <span className="text-rose-500">*</span>
                 </label>
-                <textarea className="field-input min-h-[180px] py-4 px-6 bg-slate-950/50 border-slate-700 focus:border-purple-500 leading-relaxed Custom-scrollbar" required value={form.description}
+                <textarea className="field-input min-h-[180px] py-4 px-6 bg-slate-950/50 border-slate-700 focus:border-accent leading-relaxed Custom-scrollbar" required value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
                   placeholder="Describe the problem, including input/output expectations and examples..." />
               </div>
@@ -148,7 +148,7 @@ export function CreateQuestion() {
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Difficulty</label>
                   <div className="relative group/select">
-                    <select className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-purple-500 appearance-none cursor-pointer" value={form.difficulty}
+                    <select className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-accent appearance-none cursor-pointer" value={form.difficulty}
                       onChange={e => setForm({ ...form, difficulty: e.target.value })}>
                       <option value="EASY">EASY</option>
                       <option value="MEDIUM">MEDIUM</option>
@@ -161,12 +161,12 @@ export function CreateQuestion() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Points</label>
-                  <input className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-purple-500 font-bold" type="number" min="1" value={form.marks}
+                  <input className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-accent font-bold" type="number" min="1" value={form.marks}
                     onChange={e => setForm({ ...form, marks: parseInt(e.target.value) })} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Expected Complexity</label>
-                  <input className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-purple-500 font-mono text-slate-300" placeholder="e.g. O(N log N)" value={form.expectedTimeComplexity}
+                  <input className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-accent font-mono text-slate-300" placeholder="e.g. O(N log N)" value={form.expectedTimeComplexity}
                     onChange={e => setForm({ ...form, expectedTimeComplexity: e.target.value })} />
                 </div>
               </div>
@@ -185,19 +185,19 @@ export function CreateQuestion() {
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="space-y-3">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Input Format</label>
-                <textarea className="field-input min-h-[100px] py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-purple-500 text-sm italic" placeholder="Describe the input format..."
+                <textarea className="field-input min-h-[100px] py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-accent text-sm italic" placeholder="Describe the input format..."
                   value={form.inputFormat} onChange={e => setForm({ ...form, inputFormat: e.target.value })} />
               </div>
               <div className="space-y-3">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Output Format</label>
-                <textarea className="field-input min-h-[100px] py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-purple-500 text-sm italic" placeholder="Describe the output format..."
+                <textarea className="field-input min-h-[100px] py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-accent text-sm italic" placeholder="Describe the output format..."
                   value={form.outputFormat} onChange={e => setForm({ ...form, outputFormat: e.target.value })} />
               </div>
            </div>
 
            <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Constraints</label>
-              <textarea className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-purple-500 font-mono text-xs text-blue-300" placeholder="e.g. 1 ≤ N ≤ 10^5"
+              <textarea className="field-input py-3 px-4 bg-slate-950/50 border-slate-700 focus:border-accent font-mono text-xs text-blue-300" placeholder="e.g. 1 ≤ N ≤ 10^5"
                 value={form.constraints} onChange={e => setForm({ ...form, constraints: e.target.value })} />
            </div>
         </div>
@@ -277,7 +277,7 @@ export function CreateQuestion() {
                       <label className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
                         <input type="checkbox" checked={tc.isHidden}
                           onChange={e => updateTestCase(i, 'isHidden', e.target.checked)}
-                          className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-purple-600 focus:ring-purple-500/20" />
+                          className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-accent focus:ring-accent/20" />
                         Hidden
                       </label>
                       {testCases.length > 1 && (
@@ -286,7 +286,9 @@ export function CreateQuestion() {
                         </button>
                       )}
                     </div>
-                  </div>                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-tighter">Input</label>
                        <textarea className="field-input min-h-[100px] p-4 bg-slate-950/80 border-slate-800 focus:border-blue-500/30 text-xs font-mono text-blue-100/80 shadow-inner" value={tc.input}

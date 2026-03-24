@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { useThemeStore } from './store/themeStore';
 
 // Auth Pages
+import { Home } from './pages/auth/Home';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
@@ -18,6 +19,7 @@ import { CreateQuestion } from './pages/Teacher/CreateQuestion';
 import { QuestionsList } from './pages/Teacher/QuestionsList';
 import { CreateTest } from './pages/Teacher/CreateTest';
 import { TestDetail } from './pages/Teacher/TestDetail';
+import { TeacherMonitor } from './pages/Teacher/TeacherMonitor';
 import { TeacherResults } from './pages/Teacher/TeacherResults';
 
 // Student Pages
@@ -53,10 +55,11 @@ function App() {
 
   return (
     <Router>
-      <Toaster position="top-right" toastOptions={{ style: { background: '#1e1b4b', color: '#f1f5f9', border: '1px solid rgba(255,255,255,0.1)' } }} />
+      <Toaster position="top-right" toastOptions={{ style: { background: '#111111', color: '#ffffff', border: '1px solid rgba(45,240,123,0.1)' } }} />
       <Routes>
         {/* Public */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<Home/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -71,6 +74,7 @@ function App() {
           <Route path="questions/edit/:id" element={<CreateQuestion />} />
           <Route path="tests/create" element={<CreateTest />} />
           <Route path="tests/:id" element={<TestDetail />} />
+          <Route path="monitor/:id" element={<TeacherMonitor />} />
           <Route path="results" element={<TeacherResults />} />
         </Route>
 

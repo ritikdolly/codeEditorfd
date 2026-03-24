@@ -108,20 +108,20 @@ export function TeacherResults() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2df07b]"></div>
+      <div className="p-6 flex items-center justify-center min-h-100">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     );
   }
 
   const SortHeader = ({ label, sortKey, align = 'left' }) => (
     <th
-      className={`px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-white/[0.05] transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
+      className={`px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
       onClick={() => handleSort(sortKey)}
     >
       <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : ''}`}>
         {label}
-        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-[#2df07b]' : 'text-gray-700'}`}>
+        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-accent' : 'text-gray-700'}`}>
           <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▴</span>
           <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▾</span>
         </span>
@@ -135,13 +135,13 @@ export function TeacherResults() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-10 border-b border-white/5">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-2xl bg-[#2df07b]/10 border border-[#2df07b]/20">
-              <BarChart2 className="text-[#2df07b]" size={28} />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Test Results</h1>
-              <p className="text-gray-400 font-medium max-w-md mt-2 italic opacity-80 uppercase text-[10px] tracking-widest">Select a test to deep-dive into student insights.</p>
-            </div>
+          <div className="p-3 rounded-2xl bg-linear-to-br from-accent to-emerald-600 shadow-xl shadow-accent/20 ring-1 ring-white/20">
+            <BarChart2 className="text-white" size={28} />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Test Results</h1>
+            <p className="text-gray-400 font-medium max-w-md mt-2 italic opacity-80 uppercase text-[10px] tracking-widest">Select a test to deep-dive into student insights.</p>
+          </div>
           </div>
           
           <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
@@ -152,10 +152,10 @@ export function TeacherResults() {
                  placeholder="Search tests..."
                  value={filterQuery}
                  onChange={(e) => setFilterQuery(e.target.value)}
-                 className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-3.5 pl-12 text-sm text-white focus:outline-none focus:border-[#2df07b]/50 transition-all placeholder:text-gray-700 font-bold uppercase tracking-tight"
+                 className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-3.5 pl-12 text-sm text-white focus:outline-none focus:border-accent/50 transition-all placeholder:text-gray-700 font-bold uppercase tracking-tight"
                />
             </div>
-            <Link to="/teacher/tests/create" className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3 text-[11px] shadow-lg shadow-[#2df07b]/20 active:scale-95 uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
+            <Link to="/teacher/tests/create" className="bg-accent hover:bg-accent-dark text-black font-bold py-3.5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3 text-[11px] shadow-lg shadow-accent/20 active:scale-95 uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
                <ClipboardList size={20} />
                <span>Schedule New Test</span>
             </Link>
@@ -166,20 +166,20 @@ export function TeacherResults() {
         {tests.length === 0 ? (
           <div className="bg-[#111111] border border-white/5 border-dashed rounded-[48px] p-24 flex flex-col items-center justify-center text-center shadow-2xl group overflow-hidden relative">
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
-               <BookOpen size={150} className="text-[#2df07b]" />
+               <BookOpen size={150} className="text-accent" />
             </div>
             <ClipboardList className="text-white/5 mb-8" size={80} strokeWidth={1} />
             <h3 className="text-3xl font-bold text-white mb-3 tracking-tight uppercase">No Tests Found</h3>
             <p className="text-gray-500 mb-10 max-w-sm leading-relaxed font-medium italic opacity-60 uppercase text-[10px] tracking-widest">
               Your assessment history is empty. Launch a new test to start collecting student performance data.
             </p>
-            <Link to="/teacher/tests/create" className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4 px-10 rounded-2xl transition-all active:scale-95 text-[11px] uppercase tracking-widest shadow-xl shadow-[#2df07b]/20">
+            <Link to="/teacher/tests/create" className="bg-accent hover:bg-accent-dark text-black font-bold py-4 px-10 rounded-2xl transition-all active:scale-95 text-[11px] uppercase tracking-widest shadow-xl shadow-accent/20">
               Create First Test
             </Link>
           </div>
         ) : (
           <div className="bg-[#111111] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl relative group">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#2df07b]/20 to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/20 to-transparent"></div>
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left">
                 <thead>
@@ -208,12 +208,12 @@ export function TeacherResults() {
                       return (
                         <tr key={test.id} className="hover:bg-white/[0.02] transition-all group/row">
                           <td className="px-8 py-6">
-                            <p className="text-white font-bold text-sm uppercase tracking-tight group-hover/row:text-[#2df07b] transition-colors">{test.name}</p>
+                            <p className="text-white font-bold text-sm uppercase tracking-tight group-hover/row:text-accent transition-colors">{test.name}</p>
                           </td>
                           <td className="px-6 py-6 text-center">
                             <span className={`inline-flex px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
                               test.status === 'ACTIVE' 
-                                ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' 
+                                ? 'bg-accent/10 text-accent border-accent/20' 
                                 : test.status === 'COMPLETED'
                                 ? 'bg-white/5 text-gray-500 border-white/5'
                                 : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
@@ -238,7 +238,7 @@ export function TeacherResults() {
                              <span className="text-white font-mono font-bold">{analytics?.totalStudentsAppeared || 0}</span>
                           </td>
                           <td className="px-6 py-6 text-center">
-                             <span className="text-[#2df07b] font-mono font-bold">{analytics?.totalStudentsPassed || 0}</span>
+                             <span className="text-accent font-mono font-bold">{analytics?.totalStudentsPassed || 0}</span>
                           </td>
                           <td className="px-6 py-6 text-center">
                              <span className="text-rose-500 font-mono font-bold">{analytics?.totalStudentsFailed || 0}</span>
@@ -246,7 +246,7 @@ export function TeacherResults() {
                           <td className="px-8 py-6 text-right">
                              <Link 
                                to={`/teacher/tests/${test.id}`}
-                               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 text-white hover:bg-[#2df07b] hover:text-black text-[10px] font-bold uppercase tracking-widest transition-all group/btn shadow-xl border border-white/5 hover:border-[#2df07b]"
+                               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 text-white hover:bg-accent hover:text-black text-[10px] font-bold uppercase tracking-widest transition-all group/btn shadow-xl border border-white/5 hover:border-accent"
                              >
                                <span>Inspect</span>
                                <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
