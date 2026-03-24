@@ -45,7 +45,10 @@ export function Register() {
       const data = await authService.verifyRegistration({ email: form.email, otp });
       login(data.token, data.user);
       toast.success("Account verified! Welcome to CodeArena!");
-      navigate(`/${data.user.role.toLowerCase()}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
@@ -132,6 +135,8 @@ export function Register() {
                 >
                   <option value="STUDENT">Student</option>
                   <option value="TEACHER">Teacher</option>
+                  <option value="CAMPUS_ADMIN">Campus Admin</option>
+                  <option value="SUPER_ADMIN">Super Admin</option>
                 </select>
               </div>
 

@@ -25,8 +25,10 @@ export function Login() {
       const data = await authService.login({ email, password });
       login(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}!`);
-      const role = data.user.role.toLowerCase();
-      navigate(`/${role}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {
@@ -55,8 +57,10 @@ export function Login() {
       const data = await authService.loginOtp({ email, otp });
       login(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}!`);
-      const role = data.user.role.toLowerCase();
-      navigate(`/${role}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid or expired OTP');
     } finally {
@@ -74,8 +78,10 @@ export function Login() {
       const data = await authService.googleLogin({ token: credentialResponse.credential, role: googleLoginRole });
       login(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}!`);
-      const role = data.user.role.toLowerCase();
-      navigate(`/${role}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Google verification failed.');
     } finally {
@@ -226,6 +232,8 @@ export function Login() {
                     >
                       <option value="STUDENT">Student</option>
                       <option value="TEACHER">Teacher</option>
+                      <option value="CAMPUS_ADMIN">Campus Admin</option>
+                      <option value="SUPER_ADMIN">Super Admin</option>
                     </select>
                   </div>
                 </div>

@@ -3,7 +3,9 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import {
   Code2, LayoutDashboard, Users, BookOpen, PlusCircle,
-  BarChart2, LogOut, ChevronRight, Menu, X
+  BarChart2, LogOut, ChevronRight, Menu, X, Building2,
+  GraduationCap, Layers, UserCog, Upload, ScrollText,
+  UserCheck, School, Briefcase, ShieldCheck
 } from 'lucide-react';
 
 const NAV = {
@@ -13,7 +15,50 @@ const NAV = {
     { label: 'Create Test', icon: PlusCircle, path: '/teacher/tests/create' },
     { label: 'Results', icon: BarChart2, path: '/teacher/results' },
   ],
+  super_admin: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { label: 'Campuses', icon: Building2, path: '/admin/campuses' },
+    { label: 'Users', icon: Users, path: '/admin/users' },
+    { label: 'Staff', icon: ShieldCheck, path: '/admin/staff' },
+    { label: 'Subscriptions', icon: Layers, path: '/admin/subscriptions' },
+  ],
+  campus_admin: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/campus-admin' },
+    { label: 'Users', icon: Users, path: '/campus-admin/users' },
+    { label: 'Departments', icon: School, path: '/campus-admin/departments' },
+    { label: 'Batches', icon: Layers, path: '/campus-admin/batches' },
+    { label: 'Bulk Upload', icon: Upload, path: '/campus-admin/bulk-upload' },
+  ],
+  campus_staff: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff' },
+    { label: 'Users', icon: Users, path: '/staff/users' },
+    { label: 'Bulk Upload', icon: Upload, path: '/staff/bulk-upload' },
+  ],
+  platform_staff: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { label: 'Campuses', icon: Building2, path: '/admin/campuses' },
+    { label: 'Users', icon: Users, path: '/admin/users' },
+    { label: 'Subscriptions', icon: Layers, path: '/admin/subscriptions' },
+    { label: 'Audit Logs', icon: ScrollText, path: '/admin/audit-logs' },
+  ],
+  dean: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dean' },
+    { label: 'Students', icon: GraduationCap, path: '/dean/students' },
+    { label: 'Teachers', icon: UserCheck, path: '/dean/teachers' },
+    { label: 'HODs & Mentors', icon: Briefcase, path: '/dean/academic-staff' },
+  ],
+  hod: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/hod' },
+    { label: 'Teachers', icon: UserCheck, path: '/hod/teachers' },
+    { label: 'Students', icon: GraduationCap, path: '/hod/students' },
+    { label: 'Mentors', icon: UserCog, path: '/hod/mentors' },
+  ],
+  mentor: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/mentor' },
+    { label: 'My Students', icon: GraduationCap, path: '/mentor/students' },
+  ],
 };
+
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuthStore();
@@ -30,7 +75,7 @@ export const DashboardLayout = () => {
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const SidebarContent = () => (
+  const renderSidebarContent = () => (
     <>
       {/* Logo */}
       <div className="px-5 py-5 border-b border-slate-700/50">
@@ -53,7 +98,7 @@ export const DashboardLayout = () => {
         </div>
         <div className="mt-3 px-1">
           <p className="text-white text-sm font-medium truncate">{user?.name}</p>
-          <span className="text-xs text-slate-400 capitalize font-medium">{role}</span>
+          <span className="text-xs text-slate-400 capitalize font-medium">{role?.replace('_', ' ')}</span>
         </div>
       </div>
 
@@ -99,7 +144,7 @@ export const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* Main area */}

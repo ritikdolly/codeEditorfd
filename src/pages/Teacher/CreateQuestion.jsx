@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { teacherService } from '../../services/api';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PlusCircle, Trash2, Loader2, BookOpen, Code, Settings, Beaker, ArrowLeft, Info, HelpCircle, Save } from 'lucide-react';
+import { PlusCircle, Trash2, Loader2, BookOpen, Code, Settings, Beaker, ArrowLeft, Info, HelpCircle, Save, Globe, EyeOff } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 
 const emptyTestCase = { input: '', expectedOutput: '', isHidden: false };
 
@@ -23,6 +24,7 @@ export function CreateQuestion() {
     prefixCode: '',
     suffixCode: '',
     templateCode: '',
+    visibility: 'GLOBAL',
   });
   const [testCases, setTestCases] = useState([{ ...emptyTestCase }]);
 
@@ -42,6 +44,7 @@ export function CreateQuestion() {
             prefixCode: data.prefixCode || '',
             suffixCode: data.suffixCode || '',
             templateCode: data.templateCode || '',
+            visibility: data.visibility || 'PRIVATE',
           });
           if (data.testCases && data.testCases.length > 0) {
             setTestCases(data.testCases.map(tc => ({
@@ -165,6 +168,52 @@ export function CreateQuestion() {
                     onChange={e => setForm({ ...form, expectedTimeComplexity: e.target.value })} />
                 </div>
               </div>
+ 
+              {/* Visibility Section for Teachers */}
+              {useAuthStore.getState().user?.role === 'TEACHER' && (
+                <div className="pt-8 border-t border-slate-800/50">
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+                    Visibility Mode
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, visibility: 'PRIVATE' })}
+                      className={`flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 ${
+                        form.visibility === 'PRIVATE'
+                          ? 'bg-purple-500/10 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.15)]'
+                          : 'bg-slate-950/30 border-slate-800 text-slate-500 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className={`p-3 rounded-2xl ${form.visibility === 'PRIVATE' ? 'bg-purple-600 text-white' : 'bg-slate-800'}`}>
+                        <EyeOff size={20} />
+                      </div>
+                      <div className="text-left">
+                        <p className={`font-black text-sm uppercase tracking-tight ${form.visibility === 'PRIVATE' ? 'text-white' : 'text-slate-400'}`}>Private Access</p>
+                        <p className="text-[10px] opacity-60 font-medium">Only you can view/use this question.</p>
+                      </div>
+                    </button>
+ 
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, visibility: 'GLOBAL' })}
+                      className={`flex items-center gap-4 p-5 rounded-3xl border transition-all duration-300 ${
+                        form.visibility === 'GLOBAL'
+                          ? 'bg-emerald-500/10 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
+                          : 'bg-slate-950/30 border-slate-800 text-slate-500 hover:border-slate-700'
+                      }`}
+                    >
+                      <div className={`p-3 rounded-2xl ${form.visibility === 'GLOBAL' ? 'bg-emerald-600 text-white' : 'bg-slate-800'}`}>
+                        <Globe size={20} />
+                      </div>
+                      <div className="text-left">
+                        <p className={`font-black text-sm uppercase tracking-tight ${form.visibility === 'GLOBAL' ? 'text-white' : 'text-slate-400'}`}>Open Library</p>
+                        <p className="text-[10px] opacity-60 font-medium">Available to all teachers globally.</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
            </div>
         </div>
 

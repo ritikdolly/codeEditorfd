@@ -209,7 +209,6 @@ export function TestDetail() {
       {/* Analytics Widgets */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
         {[
-          { label: 'Registered', val: analytics?.totalStudentsRegistered, color: 'blue', icon: Users, desc: 'Total' },
           { label: 'Appeared', val: analytics?.totalStudentsAppeared, color: 'purple', icon: Eye, desc: 'Active' },
           { label: 'Completed', val: analytics?.totalStudentsCompleted, color: 'amber', icon: BarChart3, desc: 'Finished' },
           { label: 'Passed', val: analytics?.totalStudentsPassed, color: 'emerald', icon: CheckCircle, desc: 'Success' },
