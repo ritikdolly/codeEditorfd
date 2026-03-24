@@ -1,12 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { teacherService } from '../../services/api';
-import { BarChart2, BookOpen, Clock, Users, ArrowRight, ClipboardList, Calendar, CheckCircle, Play, AlertCircle } from 'lucide-react';
+import { 
+  BarChart2, 
+  BookOpen, 
+  Clock, 
+  Users, 
+  ArrowRight, 
+  ClipboardList, 
+  Calendar, 
+  CheckCircle, 
+  Play, 
+  AlertCircle,
+  Search,
+  ChevronRight
+} from 'lucide-react';
 
 export function TeacherResults() {
   const [tests, setTests] = useState([]);
   const [analyticsMap, setAnalyticsMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [filterQuery, setFilterQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: 'startTime', direction: 'desc' });
 
   useEffect(() => {
     teacherService.getTests()
@@ -48,6 +63,49 @@ export function TeacherResults() {
       .finally(() => setLoading(false));
   }, []);
 
+  const handleSort = (key) => {
+    let direction = 'desc';
+    if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = 'asc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const processedTests = useMemo(() => {
+    let filtered = tests;
+    if (filterQuery) {
+      const q = filterQuery.toLowerCase();
+      filtered = tests.filter(t => 
+        t.name?.toLowerCase().includes(q) || 
+        t.status?.toLowerCase().includes(q)
+      );
+    }
+    
+    return [...filtered].sort((a, b) => {
+      let aVal = a[sortConfig.key];
+      let bVal = b[sortConfig.key];
+      
+      // Override for analytics values
+      if (['totalStudentsAppeared', 'totalStudentsPassed', 'totalStudentsFailed'].includes(sortConfig.key)) {
+        aVal = analyticsMap[a.id]?.[sortConfig.key] || 0;
+        bVal = analyticsMap[b.id]?.[sortConfig.key] || 0;
+      }
+      
+      // Override for strings
+      if (sortConfig.key === 'name' || sortConfig.key === 'status') {
+         aVal = aVal?.toLowerCase() || '';
+         bVal = bVal?.toLowerCase() || '';
+      }
+      
+      if (aVal === undefined || aVal === null) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (bVal === undefined || bVal === null) return sortConfig.direction === 'asc' ? 1 : -1;
+      
+      if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [tests, analyticsMap, sortConfig, filterQuery]);
+
   if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-[400px]">
@@ -56,91 +114,156 @@ export function TeacherResults() {
     );
   }
 
+  const SortHeader = ({ label, sortKey, align = 'left' }) => (
+    <th
+      className={`px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-white/[0.05] transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
+      onClick={() => handleSort(sortKey)}
+    >
+      <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : ''}`}>
+        {label}
+        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-[#2df07b]' : 'text-gray-700'}`}>
+          <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▴</span>
+          <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▾</span>
+        </span>
+      </div>
+    </th>
+  );
+
   return (
     <div className="pb-20 relative z-10 animate-fade-in">
       <div className="max-w-7xl mx-auto space-y-12">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b border-white/5">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-[#2df07b]/10 border border-[#2df07b]/20">
-            <BarChart2 className="text-[#2df07b]" size={28} />
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-10 border-b border-white/5">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-2xl bg-[#2df07b]/10 border border-[#2df07b]/20">
+              <BarChart2 className="text-[#2df07b]" size={28} />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Test Results</h1>
+              <p className="text-gray-400 font-medium max-w-md mt-2 italic opacity-80 uppercase text-[10px] tracking-widest">Select a test to deep-dive into student insights.</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Test Results</h1>
-            <p className="text-gray-400 font-medium max-w-md mt-2">Select a test to deep-dive into student insights and performance metrics.</p>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+            <div className="relative w-full sm:w-72">
+               <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+               <input 
+                 type="text"
+                 placeholder="Search tests..."
+                 value={filterQuery}
+                 onChange={(e) => setFilterQuery(e.target.value)}
+                 className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-3.5 pl-12 text-sm text-white focus:outline-none focus:border-[#2df07b]/50 transition-all placeholder:text-gray-700 font-bold uppercase tracking-tight"
+               />
+            </div>
+            <Link to="/teacher/tests/create" className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3 text-[11px] shadow-lg shadow-[#2df07b]/20 active:scale-95 uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
+               <ClipboardList size={20} />
+               <span>Schedule New Test</span>
+            </Link>
           </div>
         </div>
-        <Link to="/teacher/tests/create" className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-8 rounded-xl transition-all flex items-center gap-3 text-sm shadow-lg shadow-[#2df07b]/20 active:scale-95 uppercase tracking-widest whitespace-nowrap">
-           <ClipboardList size={18} />
-           <span>Schedule New Test</span>
-        </Link>
-      </div>
 
-        {/* Tests List */}
+        {/* Tests List - Tabular View */}
         {tests.length === 0 ? (
-          <div className="bg-[#111111] border border-white/5 border-dashed rounded-3xl p-16 flex flex-col items-center justify-center text-center shadow-2xl">
-            <ClipboardList className="text-white/5 mb-6" size={64} strokeWidth={1} />
-            <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">No Tests Found</h3>
-            <p className="text-gray-500 mb-8 max-w-sm leading-relaxed font-medium">
+          <div className="bg-[#111111] border border-white/5 border-dashed rounded-[48px] p-24 flex flex-col items-center justify-center text-center shadow-2xl group overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
+               <BookOpen size={150} className="text-[#2df07b]" />
+            </div>
+            <ClipboardList className="text-white/5 mb-8" size={80} strokeWidth={1} />
+            <h3 className="text-3xl font-bold text-white mb-3 tracking-tight uppercase">No Tests Found</h3>
+            <p className="text-gray-500 mb-10 max-w-sm leading-relaxed font-medium italic opacity-60 uppercase text-[10px] tracking-widest">
               Your assessment history is empty. Launch a new test to start collecting student performance data.
             </p>
-            <Link to="/teacher/tests/create" className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3 px-8 rounded-xl transition-all active:scale-95 text-sm uppercase tracking-widest shadow-lg">
+            <Link to="/teacher/tests/create" className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4 px-10 rounded-2xl transition-all active:scale-95 text-[11px] uppercase tracking-widest shadow-xl shadow-[#2df07b]/20">
               Create First Test
             </Link>
           </div>
         ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tests.map(test => (
-            <div key={test.id} className="bg-[#111111] border border-white/10 rounded-2xl p-6 flex flex-col hover:border-[#2df07b]/30 transition-all duration-300 group relative overflow-hidden h-[300px] shadow-xl">
-              {/* Background Glow */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#2df07b]/5 blur-[60px] group-hover:bg-[#2df07b]/10 transition-all duration-500"></div>
-              
-              <div className="flex justify-between items-start mb-6 relative z-10">
-                <div className="p-2 rounded-xl bg-white/5 border border-white/5 group-hover:bg-[#2df07b]/10 group-hover:border-[#2df07b]/20 transition-all">
-                   <Calendar size={20} className="text-gray-500 group-hover:text-[#2df07b]" />
-                </div>
-                <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${
-                  test.status === 'ACTIVE' 
-                    ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' 
-                    : test.status === 'COMPLETED' ? 'bg-white/5 text-gray-500 border-white/5' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                }`}>
-                  {test.status || 'SCHEDULED'}
-                </div>
-              </div>
-
-              <div className="flex-1 relative z-10">
-                <h3 className="text-xl font-bold text-white truncate mb-2 group-hover:text-[#2df07b] transition-colors uppercase tracking-tight" title={test.name}>{test.name}</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center text-gray-500 font-bold text-[11px] uppercase tracking-wider gap-2">
-                    <Clock size={14} />
-                    <span>Duration: <span className="text-white">{test.duration} Minutes</span></span>
-                  </div>
-                  {test.startTime ? (
-                    <div className="flex items-center text-gray-500 font-bold text-[11px] uppercase tracking-wider gap-2">
-                      <Play size={14} />
-                      <span>Starts: <span className="text-white">{new Date(test.startTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} • {new Date(test.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span></span>
-                    </div>
+          <div className="bg-[#111111] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl relative group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#2df07b]/20 to-transparent"></div>
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-white/[0.02] border-b border-white/5">
+                    <SortHeader label="TEST NAME" sortKey="name" />
+                    <SortHeader label="STATUS" sortKey="status" align="center" />
+                    <SortHeader label="DATE & TIME" sortKey="startTime" />
+                    <SortHeader label="DURATION" sortKey="duration" />
+                    <SortHeader label="APPEARED" sortKey="totalStudentsAppeared" align="center" />
+                    <SortHeader label="PASSED" sortKey="totalStudentsPassed" align="center" />
+                    <SortHeader label="FAILED" sortKey="totalStudentsFailed" align="center" />
+                    <th className="px-8 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.02]">
+                  {processedTests.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="px-8 py-20 text-center text-gray-700 italic font-bold uppercase tracking-widest">
+                        No tests match your search.
+                      </td>
+                    </tr>
                   ) : (
-                     <div className="flex items-center text-gray-600 font-bold text-[11px] uppercase tracking-wider gap-2 opacity-50">
-                        <AlertCircle size={14} />
-                        <span>Date Not Set</span>
-                     </div>
+                    processedTests.map(test => {
+                      const analytics = analyticsMap[test.id];
+                      
+                      return (
+                        <tr key={test.id} className="hover:bg-white/[0.02] transition-all group/row">
+                          <td className="px-8 py-6">
+                            <p className="text-white font-bold text-sm uppercase tracking-tight group-hover/row:text-[#2df07b] transition-colors">{test.name}</p>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                            <span className={`inline-flex px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
+                              test.status === 'ACTIVE' 
+                                ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' 
+                                : test.status === 'COMPLETED'
+                                ? 'bg-white/5 text-gray-500 border-white/5'
+                                : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                            }`}>
+                              {test.status || 'SCHEDULED'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-6 font-mono text-gray-400 text-xs">
+                             {test.startTime ? (
+                               <div className="flex flex-col gap-0.5">
+                                 <span className="text-white/80">{new Date(test.startTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                 <span className="text-[10px] text-gray-600 font-bold uppercase">{new Date(test.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                               </div>
+                             ) : (
+                               <span className="text-gray-700 italic font-bold uppercase text-[10px]">Not Set</span>
+                             )}
+                          </td>
+                          <td className="px-6 py-6 text-gray-400 font-bold text-xs">
+                             {test.duration} <span className="text-[9px] uppercase tracking-tighter opacity-50">MIN</span>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                             <span className="text-white font-mono font-bold">{analytics?.totalStudentsAppeared || 0}</span>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                             <span className="text-[#2df07b] font-mono font-bold">{analytics?.totalStudentsPassed || 0}</span>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                             <span className="text-rose-500 font-mono font-bold">{analytics?.totalStudentsFailed || 0}</span>
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                             <Link 
+                               to={`/teacher/tests/${test.id}`}
+                               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 text-white hover:bg-[#2df07b] hover:text-black text-[10px] font-bold uppercase tracking-widest transition-all group/btn shadow-xl border border-white/5 hover:border-[#2df07b]"
+                             >
+                               <span>Inspect</span>
+                               <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                             </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
-                </div>
-              </div>
-              
-              <Link 
-                to={`/teacher/tests/${test.id}`}
-                className="mt-6 w-full py-4 rounded-xl bg-white/5 hover:bg-[#2df07b] border border-white/5 hover:border-[#2df07b] text-white hover:text-black text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative z-10"
-              >
-                <span>View Analytics</span>
-                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
+                </tbody>
+              </table>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
 
