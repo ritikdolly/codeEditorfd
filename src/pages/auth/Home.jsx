@@ -285,7 +285,7 @@ export const Home = () => {
             <MonitorPlay size={14} /> Available Now
           </div>
           <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-6 tracking-tight">
-            Start shipping faster today.
+            Start Coding faster today.
           </h2>
           <p className="text-[17px] text-gray-400 mb-10">
             Join thousands of developers building the future. Set up your

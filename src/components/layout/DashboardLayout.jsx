@@ -24,11 +24,7 @@ const NAV = {
   ],
   teacher: [
     { label: "Dashboard", icon: LayoutDashboard, path: "/teacher" },
-    {
-      label: "Question Library",
-      icon: BookOpen,
-      path: "/teacher/questions",
-    },
+    { label: "Question Library", icon: BookOpen, path: "/teacher/questions" },
     { label: "Create Test", icon: PlusCircle, path: "/teacher/tests/create" },
     { label: "Results", icon: BarChart2, path: "/teacher/results" },
   ],
@@ -51,9 +47,15 @@ export const DashboardLayout = () => {
   const closeSidebar = () => setSidebarOpen(false);
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-[#09090b] text-white">
-      {/* ─── Logo & Header ─── */}
-      <div className="px-6 py-6 border-b border-white/5 bg-[#09090b]">
+    <div
+      className="flex flex-col h-full"
+      style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-text)" }}
+    >
+      {/* Logo & Header */}
+      <div
+        className="px-6 py-6"
+        style={{ borderBottom: "1px solid var(--sidebar-border)" }}
+      >
         <div className="flex items-center justify-between">
           <Link
             to="/"
@@ -63,38 +65,56 @@ export const DashboardLayout = () => {
             <div className="bg-[#2df07b] p-1.5 rounded text-black transition-transform">
               <Code2 size={24} strokeWidth={2.5} />
             </div>
-            <span className="font-bold text-white text-lg tracking-tight uppercase">
-              CODEARENA
+            <span
+              className="font-bold text-lg tracking-tight uppercase"
+              style={{ color: "var(--text-primary)" }}
+            >
+              SYNTXARENA
             </span>
           </Link>
-
-          {/* Close button — only visible on mobile */}
           <button
             onClick={closeSidebar}
-            className="lg:hidden text-gray-500 hover:text-white transition-colors"
+            className="lg:hidden transition-colors"
+            style={{ color: "var(--text-muted)" }}
             aria-label="Close menu"
           >
             <X size={24} />
           </button>
         </div>
 
-        {/* User Info Overlay */}
-        <div className="mt-8 flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-           <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-gray-400 border border-white/10 font-bold uppercase">
-             {user?.name?.charAt(0)}
-           </div>
-           <div className="flex flex-col min-w-0">
-             <p className="text-white text-sm font-bold truncate">
-               {user?.name}
-             </p>
-             <span className="text-[10px] text-[#2df07b] font-bold uppercase tracking-widest mt-0.5">
-               {role}
-             </span>
-           </div>
+        {/* User Info */}
+        <div
+          className="mt-8 flex items-center gap-3 p-3 rounded-xl"
+          style={{
+            background: "var(--bg-secondary)",
+            border: "1px solid var(--card-border)",
+          }}
+        >
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center font-bold uppercase"
+            style={{
+              background: "var(--bg-tertiary)",
+              color: "var(--text-muted)",
+              border: "1px solid var(--card-border)",
+            }}
+          >
+            {user?.name?.charAt(0)}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <p
+              className="text-sm font-bold truncate"
+              style={{ color: "var(--text-primary)" }}
+            >
+              {user?.name}
+            </p>
+            <span className="text-[10px] text-[#2df07b] font-bold uppercase tracking-widest mt-0.5">
+              {role}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* ─── Nav Links ─── */}
+      {/* Nav Links */}
       <nav className="flex-1 py-8 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
         {links.map((link) => {
           const active =
@@ -108,41 +128,76 @@ export const DashboardLayout = () => {
               key={link.path}
               to={link.path}
               onClick={closeSidebar}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all ${
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all"
+              style={
                 active
-                  ? "bg-[#2df07b] text-zinc-950 shadow-lg shadow-[#2df07b]/20"
-                  : "text-gray-500 hover:text-white hover:bg-white/5 border border-transparent"
-              }`}
+                  ? {
+                      background: "var(--sidebar-active-bg)",
+                      color: "var(--sidebar-active-text)",
+                      boxShadow: "0 4px 12px rgba(45,240,123,0.2)",
+                    }
+                  : { color: "var(--sidebar-text-muted)" }
+              }
+              onMouseEnter={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = "var(--sidebar-hover)";
+                  e.currentTarget.style.color = "var(--text-primary)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!active) {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "var(--sidebar-text-muted)";
+                }
+              }}
             >
               <link.icon
                 size={18}
-                className={active ? "text-zinc-950" : "text-gray-500"}
+                style={{
+                  color: active
+                    ? "var(--sidebar-active-text)"
+                    : "var(--icon-muted)",
+                }}
                 strokeWidth={2.5}
               />
               {link.label}
               {active && (
-                <ChevronRight size={16} className="ml-auto text-zinc-950" />
+                <ChevronRight
+                  size={16}
+                  className="ml-auto"
+                  style={{ color: "var(--sidebar-active-text)" }}
+                />
               )}
             </Link>
           );
         })}
       </nav>
 
-      {/* ─── Footer Section ─── */}
-      <div className="p-4 border-t border-white/5 space-y-2 bg-[#09090b]">
+      {/* Footer */}
+      <div
+        className="p-4 space-y-2"
+        style={{ borderTop: "1px solid var(--sidebar-border)" }}
+      >
         <button
           onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--sidebar-hover)";
+            e.currentTarget.style.color = "var(--text-primary)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "var(--text-muted)";
+          }}
         >
           {theme === "dark" ? (
             <>
-              <Sun size={18} strokeWidth={2.5} />
-              Light Presence
+              <Sun size={18} strokeWidth={2.5} /> Light Mode
             </>
           ) : (
             <>
-              <Moon size={18} strokeWidth={2.5} />
-              Dark Presence
+              <Moon size={18} strokeWidth={2.5} /> Dark Mode
             </>
           )}
         </button>
@@ -159,61 +214,75 @@ export const DashboardLayout = () => {
   );
 
   return (
-    <div className="flex h-screen w-full bg-[#09090b] font-sans text-gray-100 selection:bg-[#2df07b] selection:text-black overflow-hidden relative">
-      {/* ─── Mobile Sidebar Overlay ─── */}
+    <div
+      className="flex h-screen w-full font-sans selection:bg-[#2df07b] selection:text-black overflow-hidden relative"
+      style={{ background: "var(--bg-main)", color: "var(--text-primary)" }}
+    >
+      {/* Mobile Sidebar Overlay */}
       <div
-        className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ${
           sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={closeSidebar}
         aria-hidden="true"
       />
 
-      {/* ─── Primary Sidebar ─── */}
+      {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#09090b] border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
+        style={{ background: "var(--sidebar-bg)", borderRight: "1px solid var(--sidebar-border)" }}
       >
         <SidebarContent />
       </aside>
 
-      {/* ─── Hub Content Area ─── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#09090b]">
-        {/* Hub Header Hub (Desktop Header + Mobile Header) */}
-        <header className="flex items-center justify-between px-8 py-4 bg-[#09090b] border-b border-white/5 sticky top-0 z-30">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden" style={{ background: "var(--bg-main)" }}>
+        {/* Header */}
+        <header
+          className="flex items-center justify-between px-8 py-4 sticky top-0 z-30"
+          style={{ background: "var(--header-bg)", borderBottom: "1px solid var(--header-border)" }}
+        >
           <div className="flex items-center gap-4">
             <button
-              className="lg:hidden text-gray-400 hover:text-white transition-colors"
+              className="lg:hidden transition-colors"
               onClick={() => setSidebarOpen(true)}
               aria-label="Open menu"
+              style={{ color: "var(--text-muted)" }}
             >
               <Menu size={24} />
             </button>
-            <div className="flex items-center gap-3 text-xs text-gray-400 font-bold uppercase tracking-widest px-3 py-1.5 bg-white/5 rounded border border-white/5">
-               <span className="text-[#2df07b] font-black mr-1">/</span>
-               {location.pathname.split("/")[2] || "Dashboard"}
+            <div
+              className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded"
+              style={{ color: "var(--text-muted)", background: "var(--bg-secondary)", border: "1px solid var(--card-border)" }}
+            >
+              <span className="text-[#2df07b] font-black mr-1">/</span>
+              {location.pathname.split("/")[2] || "Dashboard"}
             </div>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
-               <div className="flex flex-col text-right hidden sm:flex">
-                 <span className="text-sm font-bold text-white leading-none">{user?.name}</span>
-                 <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{role} Terminal</span>
-               </div>
-               <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center font-bold text-gray-400">
-                 {user?.name?.charAt(0)}
-               </div>
+              <div className="flex flex-col text-right hidden sm:flex">
+                <span className="text-sm font-bold leading-none" style={{ color: "var(--text-primary)" }}>{user?.name}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest mt-0.5" style={{ color: "var(--text-muted)" }}>{role}</span>
+              </div>
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center font-bold"
+                style={{ background: "var(--bg-secondary)", border: "1px solid var(--card-border)", color: "var(--text-muted)" }}
+              >
+                {user?.name?.charAt(0)}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* ─── Page Outlet Hub ─── */}
+        {/* Page Outlet */}
         <main className="flex-1 overflow-y-auto relative z-10 p-4 lg:p-10 custom-scrollbar">
-          {/* Subtle Background Glow for Context */}
-          <div className="absolute top-0 right-0 w-full max-w-2xl h-96 bg-[#2df07b]/5 blur-[120px] rounded-full pointer-events-none -z-10 opacity-50"></div>
-          
+          {/* Subtle background glow */}
+          <div className="absolute top-0 right-0 w-full max-w-2xl h-96 blur-[120px] rounded-full pointer-events-none -z-10 opacity-50" style={{ background: "var(--glow-color)" }}></div>
+
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
@@ -222,4 +291,3 @@ export const DashboardLayout = () => {
     </div>
   );
 };
-

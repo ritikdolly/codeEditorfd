@@ -9,28 +9,38 @@ import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 
 // Auth Pages
-import { Login } from "./pages/auth/Login";
-import { Register } from "./pages/auth/Register";
+import { Login } from './pages/auth/Login';
+import { Register } from './pages/auth/Register';
 
 // Admin Pages
-import { AdminDashboard } from "./pages/Admin/AdminDashboard";
-import { AdminUsers } from "./pages/Admin/AdminUsers";
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminUsers } from './pages/admin/AdminUsers';
 
 // Teacher Pages
-import { TeacherDashboard } from "./pages/Teacher/TeacherDashboard";
-import { CreateQuestion } from "./pages/Teacher/CreateQuestion";
-import { CreateTest } from "./pages/Teacher/CreateTest";
-import { TestDetail } from "./pages/Teacher/TestDetail";
-import { TeacherResults } from "./pages/Teacher/TeacherResults";
-import { QuestionLibrary } from "./pages/Teacher/QuestionLibrary";
-import { TeacherMonitor } from "./pages/Teacher/TeacherMonitor";
+import { TeacherDashboard } from './pages/Teacher/TeacherDashboard';
+import { CreateQuestion } from './pages/Teacher/CreateQuestion';
+import { QuestionLibrary } from './pages/Teacher/QuestionLibrary';
+import { CreateTest } from './pages/Teacher/CreateTest';
+import { TestDetail } from './pages/Teacher/TestDetail';
+import { TeacherMonitor } from './pages/Teacher/TeacherMonitor';
+import { TeacherResults } from './pages/Teacher/TeacherResults';
 
 // Student Pages
 import { StudentDashboard } from "./pages/Student/StudentDashboard";
 import { LiveTest } from "./pages/Student/LiveTest";
 import { Home } from "./pages/auth/Home";
+import { ForgotPassword } from "./pages/auth/ForgotPassword";
+
+import { useEffect } from 'react';
+import { useThemeStore } from './store/themeStore';
 
 function App() {
+  const { initTheme } = useThemeStore();
+
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
+
   return (
     <Router>
       <Toaster
@@ -49,16 +59,10 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Admin */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute allowedRoles={["admin"]}>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
         </Route>

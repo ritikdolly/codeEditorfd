@@ -19,17 +19,14 @@ api.interceptors.request.use((config) => {
 // --- Auth API ---
 export const authService = {
   register: (data) => api.post('/auth/register', data).then(r => r.data),
+  verifyRegistration: (data) => api.post('/auth/verify-registration', data).then(r => r.data),
   login: (data) => api.post('/auth/login', data).then(r => r.data),
+  requestLoginOtp: (data) => api.post('/auth/request-login-otp', data).then(r => r.data),
+  loginOtp: (data) => api.post('/auth/login-otp', data).then(r => r.data),
+  googleLogin: (data) => api.post('/auth/google-login', data).then(r => r.data),
+  forgotPassword: (data) => api.post('/auth/forgot-password', data).then(r => r.data),
+  resetPassword: (data) => api.post('/auth/reset-password', data).then(r => r.data),
 };
-
-// --- Admin API ---
-export const adminService = {
-  getDashboard: () => api.get('/admin/dashboard').then(r => r.data),
-  getAllUsers: () => api.get('/admin/users').then(r => r.data),
-  getTeachers: () => api.get('/admin/teachers').then(r => r.data),
-  getStudents: () => api.get('/admin/students').then(r => r.data),
-};
-
 // --- Teacher API ---
 export const teacherService = {
   getQuestions: () => api.get('/teacher/questions').then(r => r.data),
@@ -56,4 +53,10 @@ export const studentService = {
   saveDraft: (testId, questionId, code) => api.put(`/student/attempts/${testId}/questions/${questionId}/draft`, { code }).then(r => r.data),
   getDraft: (testId, questionId) => api.get(`/student/attempts/${testId}/questions/${questionId}/draft`).then(r => r.data),
   getServerTime: () => api.get('/time').then(r => r.data),
+};
+
+// --- Admin API ---
+export const adminService = {
+  getDashboard: () => api.get('/admin/dashboard').then(r => r.data),
+  getAllUsers: () => api.get('/admin/users').then(r => r.data),
 };

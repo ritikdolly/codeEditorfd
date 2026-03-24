@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Group as PanelGroup,
@@ -67,6 +67,13 @@ export function LiveTest() {
   const [testResult, setTestResult] = useState(null);
   const [serverOffset, setServerOffset] = useState(0);
   const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // Proctoring States
+  const [fullscreenViolations, setFullscreenViolations] = useState(0);
+  const [isWarningActive, setIsWarningActive] = useState(false);
+  const [warningCountdown, setWarningCountdown] = useState(5);
+  const [hasStartedFullscreen, setHasStartedFullscreen] = useState(false);
+  const handleFinishTestRef = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setCurrentTime(Date.now()), 1000);
@@ -322,6 +329,84 @@ export function LiveTest() {
     }
   };
 
+  useEffect(() => {
+    handleFinishTestRef.current = handleFinishTest;
+  });
+
+  // --- Proctoring Logic ---
+
+  useEffect(() => {
+    if (!test || !isAttemptInProgress || submitted || isAfterEnd || !hasStartedFullscreen) return;
+
+    const handleViolation = () => {
+      if (document.getElementById('violation-warning-overlay')) return;
+      if (submitted) return;
+      
+      setIsWarningActive(true);
+      setWarningCountdown(5);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) handleViolation();
+    };
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) handleViolation();
+    };
+
+    const handleBlur = () => {
+      handleViolation();
+    };
+    
+    // Disable right-click
+    const handleContextMenu = (e) => e.preventDefault();
+    
+    // Disable shortcuts
+    const handleKeyDown = (e) => {
+      // Ctrl+C, Ctrl+V, F12, Ctrl+Shift+I
+      if (
+        (e.ctrlKey && ['c', 'v'].includes(e.key.toLowerCase())) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("blur", handleBlur);
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [test, isAttemptInProgress, submitted, isAfterEnd, hasStartedFullscreen]);
+
+  useEffect(() => {
+    if (!isWarningActive || submitted) return;
+
+    if (warningCountdown <= 0) {
+      toast.error("Your test has been submitted due to rule violation.");
+      if (handleFinishTestRef.current) handleFinishTestRef.current(true);
+      setIsWarningActive(false);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setWarningCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isWarningActive, warningCountdown, submitted]);
+
+  // --- End Proctoring Logic ---
+
   if (!test) return (
      <div className="h-screen flex flex-col items-center justify-center bg-[#09090b] gap-6">
         <div className="w-12 h-12 rounded-full border-4 border-white/5 border-t-[#2df07b] animate-spin shadow-[0_0_15px_rgba(45,240,123,0.3)]"></div>
@@ -364,7 +449,7 @@ export function LiveTest() {
           <p className="text-gray-500 mb-10 font-medium font-inter">The assessment window has terminated. Access is no longer permitted.</p>
           <button 
             onClick={() => navigate('/student')}
-            className="w-full py-4 bg-white/5 border border-white/10 hover:bg-white hover:text-black text-white rounded-2xl font-bold uppercase tracking-widest transition-all shadow-xl active:scale-95 text-xs"
+            className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all border border-slate-700"
           >
             Back to Dashboard
           </button>
@@ -434,19 +519,21 @@ export function LiveTest() {
                 </div>
               )}
 
-              <p className="text-gray-600 text-[13px] font-medium px-4 leading-relaxed font-inter">
-                Assessment data has been transmitted to the neural bank.
-              </p>
-
-              <button
-                onClick={() => navigate("/student")}
-                className="w-full bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4.5 px-8 rounded-2xl transition-all shadow-[0_0_25px_rgba(45,240,123,0.15)] active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
-              >
-                Return to Hub <ArrowRight size={20} strokeWidth={2.5} />
-              </button>
-           </div>
+          <div className="space-y-4 pt-2">
+            <button
+              onClick={() => navigate("/student")}
+              className="w-full py-3.5 px-6 rounded-xl font-semibold text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 transition-all flex items-center justify-center gap-2 group"
+            >
+              <span>Return to Dashboard</span>
+              <ArrowRight
+                size={18}
+                className="group-hover:translate-x-1 transition-transform"
+              />
+            </button>
+          </div>
         </div>
       </div>
+    </div>
     );
   }
 
@@ -776,4 +863,5 @@ export function LiveTest() {
       </div>
     </div>
   );
+
 }
