@@ -63,10 +63,10 @@ export const TeacherMonitor = () => {
              <div>
                 <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
                    <Monitor size={14} />
-                   <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Real-time Surveillance</span>
+                   <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Real-time Monitoring</span>
                 </div>
                 <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Live Test Monitor</h1>
-                <p className="text-gray-500 mt-2 text-[15px] font-medium max-w-xl">Tracking student performance vectors for protocol: <span className="text-white font-mono">{testId?.substring(0,8)}...</span></p>
+                <p className="text-gray-500 mt-2 text-[15px] font-medium max-w-xl">Monitoring student progress for test: <span className="text-white font-mono">{testId?.substring(0,8)}...</span></p>
              </div>
           </div>
           <div className="flex items-center gap-3 bg-black border border-[#2df07b]/20 text-[#2df07b] px-5 py-2.5 rounded-full shadow-[0_0_20px_rgba(45,240,123,0.05)]">
@@ -79,21 +79,21 @@ export const TeacherMonitor = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-[#111111] p-8 border border-white/5 rounded-[32px] transition-all hover:border-[#2df07b]/20 group shadow-xl">
              <div className="flex items-center justify-between mb-4">
-               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Infiltration Count</p>
+               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Active Students</p>
                <Users size={18} className="text-gray-600 group-hover:text-white transition-colors" />
              </div>
              <p className="text-5xl font-bold text-white group-hover:scale-105 transition-transform origin-left font-outfit">{studentList.length}</p>
           </div>
           <div className="bg-[#111111] p-8 border border-white/5 rounded-[32px] transition-all hover:border-[#2df07b]/20 group shadow-xl">
              <div className="flex items-center justify-between mb-4">
-               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Protocol Finalized</p>
+               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Submissions Completed</p>
                <CheckCircle2 size={18} className="text-[#2df07b] group-hover:scale-110 transition-transform" />
              </div>
              <p className="text-5xl font-bold text-[#2df07b] group-hover:scale-105 transition-transform origin-left font-outfit">{submittedCount}</p>
           </div>
           <div className="bg-[#111111] p-8 border border-white/5 rounded-[32px] transition-all hover:border-[#2df07b]/20 group shadow-xl">
              <div className="flex items-center justify-between mb-4">
-               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Active Threads</p>
+               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Student Activity</p>
                <Zap size={18} className="text-blue-400 group-hover:animate-pulse" />
              </div>
              <p className="text-5xl font-bold text-blue-400 group-hover:scale-105 transition-transform origin-left font-outfit">{activeCount}</p>
@@ -106,17 +106,17 @@ export const TeacherMonitor = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-white/[0.02] border-b border-white/5">
-                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Candidate Profile</th>
-                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Live Status</th>
-                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Vector Precision</th>
-                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Temporal Log</th>
+                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Student</th>
+                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Status</th>
+                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Accuracy / Score</th>
+                  <th className="text-left p-6 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Last Update</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.02]">
                 {studentList.length === 0 ? (
                   <tr>
                     <td colSpan="4" className="p-24 text-center text-gray-700 italic font-medium">
-                      Awaiting initial student connection signal...
+                      Waiting for students to connect...
                     </td>
                   </tr>
                 ) : (
@@ -141,7 +141,7 @@ export const TeacherMonitor = () => {
                       <td className="p-6">
                         <div className="flex flex-col gap-2.5">
                           <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest mb-0.5">
-                             <span className="text-gray-600 font-mono">Progress Flux</span>
+                             <span className="text-gray-600 font-mono">Test Progress</span>
                              <span className="text-white font-mono">{s.questionsSolved} <span className="opacity-30">/</span> {s.totalQuestions}</span>
                           </div>
                           <div className="w-full h-2 bg-black/40 rounded-full border border-white/5 overflow-hidden shadow-inner">

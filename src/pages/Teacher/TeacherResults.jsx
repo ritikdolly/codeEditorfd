@@ -65,7 +65,7 @@ export function TeacherResults() {
             <BarChart2 className="text-[#2df07b]" size={28} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Analytics Hub</h1>
+            <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Test Results</h1>
             <p className="text-gray-400 font-medium max-w-md mt-2">Select a test to deep-dive into student insights and performance metrics.</p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export function TeacherResults() {
         </Link>
       </div>
 
-        {/* Content Stream */}
+        {/* Tests List */}
         {tests.length === 0 ? (
           <div className="bg-[#111111] border border-white/5 border-dashed rounded-3xl p-16 flex flex-col items-center justify-center text-center shadow-2xl">
             <ClipboardList className="text-white/5 mb-6" size={64} strokeWidth={1} />

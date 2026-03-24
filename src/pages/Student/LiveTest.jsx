@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Group as PanelGroup,
@@ -410,7 +410,7 @@ export function LiveTest() {
   if (!test) return (
      <div className="h-screen flex flex-col items-center justify-center bg-[#09090b] gap-6">
         <div className="w-12 h-12 rounded-full border-4 border-white/5 border-t-[#2df07b] animate-spin shadow-[0_0_15px_rgba(45,240,123,0.3)]"></div>
-        <div className="text-[#2df07b] text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">Initializing Data Stream</div>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">Loading Test Resources...</p>
      </div>
   );
 
@@ -425,14 +425,13 @@ export function LiveTest() {
             <Clock className="w-10 h-10 text-[#2df07b] animate-pulse" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-3 uppercase tracking-tight font-outfit">Test Not Started</h1>
-          <p className="text-gray-500 mb-10 font-medium">This assessment protocol is currently encrypted.</p>
+          <h2 className="text-4xl font-bold text-white mb-4 uppercase tracking-tight leading-tight">This test has not started yet.</h2>
           
           <div className="bg-black/40 rounded-3xl p-8 border border-white/5 mb-8 shadow-inner">
-            <p className="text-gray-600 text-[10px] font-bold uppercase tracking-[0.2em] mb-3">Release Window In</p>
+                <p className="text-[#2df07b] text-sm font-bold uppercase tracking-[0.3em] mb-12">Starts In</p>
             <p className="text-[#2df07b] text-5xl font-bold font-mono tracking-tighter">{waitCountdown || "00:00:00"}</p>
           </div>
-          
-          <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest animate-pulse">Awaiting Signal... Stay on this frequency.</p>
+                    <p className="mt-8 text-gray-700 text-[10px] font-bold uppercase tracking-[0.4em] animate-pulse">Waiting for test to start...</p>
         </div>
       </div>
     );
@@ -446,7 +445,7 @@ export function LiveTest() {
             <XCircle className="w-10 h-10 text-rose-500" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-3 uppercase tracking-tight font-outfit">Window Closed</h1>
-          <p className="text-gray-500 mb-10 font-medium font-inter">The assessment window has terminated. Access is no longer permitted.</p>
+                <h2 className="text-4xl font-bold text-white mb-4 uppercase tracking-tight leading-tight">The test has ended. Submissions are no longer allowed.</h2>
           <button 
             onClick={() => navigate('/student')}
             className="w-full py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black uppercase tracking-widest transition-all border border-slate-700"
@@ -477,17 +476,17 @@ export function LiveTest() {
               </div>
               
               <div className="space-y-3">
-                 <h1 className="text-4xl font-bold text-white uppercase tracking-tight font-outfit">Protocol Evaluated</h1>
-                 <p className="text-gray-500 text-[11px] font-bold uppercase tracking-[0.3em] font-inter">{test.name}</p>
+                 <h2 className="text-4xl font-bold text-white mb-4 uppercase tracking-tight">Submission Accepted</h2>
+                    <span className="text-gray-700 text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">Waiting for execution...</span>
               </div>
 
               {testResult && (
                 <div className="grid grid-cols-2 gap-8 w-full py-8 border-y border-white/5 text-left">
                   <div className="text-center group">
-                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2 group-hover:text-[#2df07b] transition-colors">Yield Metric</p>
-                    <p className="text-3xl font-bold text-white font-mono tracking-tighter">
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2 group-hover:text-[#2df07b] transition-colors">Score</p>
+                    <button onClick={handleResetCode} className="p-2 text-gray-500 hover:text-white transition-colors" title="Reset Code">
                       {testResult.totalScore} <span className="text-gray-700 text-xs lowercase">/ {totalPossibleMarks} pts</span>
-                    </p>
+                    </button>
                   </div>
                   <div className="text-center group">
                     <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2 group-hover:text-[#2df07b] transition-colors">Precision Hub</p>
@@ -498,7 +497,7 @@ export function LiveTest() {
 
               {testResult?.questionResults && (
                 <div className="w-full text-left space-y-4 max-h-[220px] overflow-y-auto custom-scrollbar px-3">
-                  <h3 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-1">Vector Breakdown</h3>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Accuracy Breakdown</p>
                   {testResult.questionResults.map((qr, idx) => (
                     <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 flex items-center justify-between hover:bg-white/[0.04] transition-all hover:border-white/10 group/item">
                       <div className="flex items-center gap-4">
@@ -542,7 +541,7 @@ export function LiveTest() {
       <div className="h-14 border-b border-white/5 px-6 flex items-center justify-between shrink-0 bg-black/40">
         <div className="flex items-center gap-4">
            <span className="w-8 h-8 bg-zinc-800 text-[#2df07b] rounded-lg flex items-center justify-center text-[11px] font-bold border border-white/10 shadow-xl">{activeIdx + 1}</span>
-           <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Problem Specification</h3>
+                    <h2 className="text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">Problem Description</h2>
         </div>
         <div className="flex items-center gap-4">
            {resultsByQuestion[activeQuestion?.id] && (
@@ -551,7 +550,7 @@ export function LiveTest() {
              </span>
            )}
            <span className="bg-white/5 border border-white/10 text-gray-400 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-xl">
-             {activeQuestion?.marks} Yield
+             {activeQuestion?.marks} Marks
            </span>
         </div>
       </div>
@@ -594,9 +593,10 @@ export function LiveTest() {
             <div className="grid gap-12 pt-4">
                {activeQuestion.inputFormat && (
                  <div className="space-y-4">
-                   <h3 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest flex items-center gap-2">
-                     <div className="w-1.5 h-1.5 rounded-full bg-[#2df07b]"></div> Standard Input Format
-                   </h3>
+                    <h3 className="text-[10px] font-bold text-[#2df07b] uppercase tracking-widest mb-6 flex items-center gap-2">
+                       <span className="w-1.5 h-1.5 rounded-full bg-[#2df07b]"></span>
+                       Sample Case
+                    </h3>
                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 text-gray-400 text-sm font-medium leading-relaxed shadow-inner">
                      {activeQuestion.inputFormat}
                    </div>
@@ -621,15 +621,15 @@ export function LiveTest() {
               {activeQuestion.testCases?.filter((tc) => !tc.isHidden).map((tc, i) => (
                 <div key={i} className="bg-white/[0.02] border border-white/5 rounded-[32px] overflow-hidden shadow-2xl transition-all hover:border-white/10 group">
                   <div className="bg-white/5 px-8 py-4 border-b border-white/5 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Sample Vector {i + 1}</span>
+                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Sample Test Case {i + 1}</span>
                   </div>
                   <div className="p-8 grid grid-cols-1 gap-8">
                     <div className="space-y-3">
-                       <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Input Stream</p>
+                       <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Input</p>
                        <pre className="bg-black border border-white/5 rounded-2xl p-5 text-[#2df07b] text-[12px] font-mono shadow-inner shadow-black opacity-80 group-hover:opacity-100 transition-opacity">{tc.input || 'None'}</pre>
                     </div>
                     <div className="space-y-3">
-                       <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Expected Yield</p>
+                       <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest">Expected Output</p>
                        <pre className="bg-black/60 border border-white/5 rounded-2xl p-5 text-white text-[12px] font-mono shadow-inner shadow-black">{tc.expectedOutput}</pre>
                     </div>
                   </div>
@@ -659,11 +659,11 @@ export function LiveTest() {
                 title="Reset to Template"
              >
                 <RotateCcw size={14} className="group-hover:rotate-[-45deg] transition-transform" />
-                Reset Vector
+                Reset Code
              </button>
              <div className="flex items-center gap-3 bg-black/40 px-3 py-1.5 rounded-full border border-white/5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#2df07b] animate-pulse shadow-[0_0_8px_#2df07b]"></div>
-                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest italic">Encrypted Sync</span>
+                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest italic">Auto-saving...</span>
              </div>
           </div>
        </div>
@@ -706,12 +706,12 @@ export function LiveTest() {
                <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-[#2df07b] group-hover:text-black transition-all">
                   <Send size={12} strokeWidth={2.5} />
                </div>
-               {submitting ? "Transmitting..." : "Submit Vector"}
+               {submitting ? "Submitting..." : "Submit Answer"}
              </button>
           </div>
           <div className="flex items-center gap-3">
              <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_#f59e0b]"></div>
-             <p className="text-[9px] font-bold text-gray-600 uppercase tracking-[0.2em] font-mono">Console STDOUT</p>
+             <p className="text-[9px] font-bold text-gray-600 uppercase tracking-[0.2em] font-mono">Console Output</p>
           </div>
        </div>
 
@@ -723,12 +723,12 @@ export function LiveTest() {
                      <CheckCircle2 size={24} strokeWidth={2.5} />
                   </div>
                   <div>
-                     <p className="text-[10px] font-bold text-[#2df07b] uppercase tracking-[0.2em] mb-0.5">Vector Validated</p>
-                     <p className="text-white text-lg font-bold tracking-tight">Yield: {currentResult.score?.toFixed(1)} <span className="text-gray-600 text-xs">/ {activeQuestion?.marks}</span></p>
+                     <p className="text-[10px] font-bold text-[#2df07b] uppercase tracking-[0.2em] mb-0.5">Submission Accepted</p>
+                     <p className="text-white text-lg font-bold tracking-tight">Score: {currentResult.score?.toFixed(1)} <span className="text-gray-600 text-xs">/ {activeQuestion?.marks}</span></p>
                   </div>
                </div>
                <div className="text-right">
-                  <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">Efficiency Rating</p>
+                  <p className="text-[9px] font-bold text-gray-700 uppercase tracking-widest mb-1.5">Accuracy</p>
                   <p className="text-2xl font-bold text-white leading-none font-mono tracking-tighter">{((currentResult.testcasesPassed / currentResult.totalTestcases) * 100).toFixed(1)}%</p>
                </div>
             </div>
@@ -749,7 +749,7 @@ export function LiveTest() {
                          </div>
                          {!tc.passed && tc.actualOutput && (
                             <div className="space-y-2 mt-1">
-                               <p className="text-[8px] font-bold text-gray-700 uppercase tracking-widest">Observable Delta</p>
+                               <p className="text-[8px] font-bold text-gray-700 uppercase tracking-widest">Actual Output</p>
                                <div className="text-[11px] text-rose-400 font-mono bg-black/60 p-3 rounded-xl border border-rose-900/10 max-h-[80px] overflow-y-auto whitespace-pre-wrap break-all shadow-inner">
                                   {tc.actualOutput}
                                </div>
@@ -763,7 +763,7 @@ export function LiveTest() {
                  <div className="space-y-4">
                     <div className="flex items-center gap-2">
                        <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-                       <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Buffer Stream</p>
+                       <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Output</p>
                     </div>
                     <pre className={`p-6 rounded-3xl border bg-black/60 text-[13px] leading-relaxed whitespace-pre-wrap font-mono shadow-2xl ${currentOutput.error ? 'border-rose-900/20 text-rose-400' : 'border-white/5 text-gray-400'}`}>
                       {currentOutput.error || currentOutput.output}

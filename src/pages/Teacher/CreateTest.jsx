@@ -44,7 +44,7 @@ export function CreateTest() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedIds.length === 0) {
-      toast.error("Cluster empty. Select at least one source vector.");
+      toast.error("Please select at least one question.");
       return;
     }
     setLoading(true);
@@ -57,10 +57,10 @@ export function CreateTest() {
         questionIds: selectedIds,
       };
       const created = await teacherService.createTest(payload);
-      toast.success("Protocol successfully initialized.");
+      toast.success("Test scheduled successfully.");
       navigate(`/teacher/tests/${created.id}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to initialize protocol");
+      toast.error(err.response?.data?.message || "Failed to schedule test");
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export function CreateTest() {
              <div>
                 <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
                    <ShieldCheck size={14} />
-                   <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Protocol Sequence</span>
+                   <span className="text-[11px] font-bold uppercase tracking-[0.2em]">Schedule Test</span>
                 </div>
                 <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Schedule Assessment</h1>
              </div>
@@ -102,14 +102,14 @@ export function CreateTest() {
              <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                    <Calendar size={18} className="text-[#2df07b]" />
-                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Protocol Configuration</h2>
+                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Test Configuration</h2>
                 </div>
                 <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full">Phase 01</div>
              </div>
              
              <div className="p-8 space-y-10">
                 <div className="space-y-3">
-                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Assessment Designation *</label>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Test Name *</label>
                   <input
                     className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] transition-all placeholder:text-gray-700 font-bold shadow-xl"
                     required
@@ -134,7 +134,7 @@ export function CreateTest() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Window Activation</label>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1">Start Time</label>
                     <input
                       className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold shadow-xl appearance-none"
                       type="datetime-local"
@@ -143,7 +143,7 @@ export function CreateTest() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1 opacity-50">Window Termination</label>
+                    <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-widest ml-1 opacity-50">End Time</label>
                     <input
                       className="w-full bg-[#050505] border border-white/5 rounded-xl text-gray-700 px-5 py-3.5 font-bold shadow-xl opacity-50 cursor-not-allowed"
                       type="datetime-local"
@@ -160,10 +160,10 @@ export function CreateTest() {
              <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                 <div className="flex items-center gap-2">
                    <BookOpen size={18} className="text-[#2df07b]" />
-                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Source Bank</h2>
+                   <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Question Library</h2>
                 </div>
                 <span className="text-[10px] font-bold text-[#2df07b] bg-white/5 px-4 py-2 rounded-xl border border-[#2df07b]/20 uppercase tracking-widest">
-                  {selectedIds.length} Vectors Matched
+                  {selectedIds.length} Questions Selected
                 </span>
              </div>
              
@@ -177,7 +177,7 @@ export function CreateTest() {
                       onClick={() => navigate("/teacher/questions/create")}
                       className="mt-8 text-[#2df07b] font-bold text-[11px] uppercase tracking-widest hover:text-white transition-colors"
                     >
-                      Authorize New Source
+                      Authorize New Question
                     </button>
                   </div>
                 ) : (
@@ -233,7 +233,7 @@ export function CreateTest() {
                onClick={() => navigate("/teacher")}
                className="text-gray-600 font-bold text-[11px] uppercase tracking-widest hover:text-rose-500 transition-all px-8 py-3.5 bg-white/5 rounded-xl border border-white/5 active:scale-95"
             >
-               Discard Protocol
+               Cancel
             </button>
             <button
               type="submit"
@@ -241,7 +241,7 @@ export function CreateTest() {
               className="w-full sm:w-auto bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4 px-12 rounded-xl transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[12px] shadow-[#2df07b]/10"
             >
               {loading ? <Loader2 size={18} className="animate-spin" /> : <Zap size={18} strokeWidth={2.5} />}
-              {loading ? "Transmitting..." : "Initialize & Deploy Protocol"}
+              {loading ? "Creating..." : "Schedule & Create Test"}
             </button>
           </div>
         </form>

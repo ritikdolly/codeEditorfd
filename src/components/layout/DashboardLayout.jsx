@@ -2,19 +2,12 @@ import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import {
-  Code2,
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  PlusCircle,
-  BarChart2,
-  LogOut,
-  ChevronRight,
-  Menu,
-  X,
-  Sun,
-  Moon,
-} from "lucide-react";
+  Code2, LayoutDashboard, Users, BookOpen, PlusCircle,
+  BarChart2, LogOut, ChevronRight, Menu, X,
+  Building2, ShieldCheck, Layers, Upload, ScrollText,
+  GraduationCap, UserCheck, Briefcase, UserCog, Sun, Moon,
+  School
+} from 'lucide-react';
 import { useThemeStore } from "../../store/themeStore";
 
 const NAV = {
@@ -28,7 +21,50 @@ const NAV = {
     { label: "Create Test", icon: PlusCircle, path: "/teacher/tests/create" },
     { label: "Results", icon: BarChart2, path: "/teacher/results" },
   ],
+  super_admin: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { label: 'Campuses', icon: Building2, path: '/admin/campuses' },
+    { label: 'Users', icon: Users, path: '/admin/users' },
+    { label: 'Staff', icon: ShieldCheck, path: '/admin/staff' },
+    { label: 'Subscriptions', icon: Layers, path: '/admin/subscriptions' },
+  ],
+  campus_admin: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/campus-admin' },
+    { label: 'Users', icon: Users, path: '/campus-admin/users' },
+    { label: 'Departments', icon: School, path: '/campus-admin/departments' },
+    { label: 'Batches', icon: Layers, path: '/campus-admin/batches' },
+    { label: 'Bulk Upload', icon: Upload, path: '/campus-admin/bulk-upload' },
+  ],
+  campus_staff: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff' },
+    { label: 'Users', icon: Users, path: '/staff/users' },
+    { label: 'Bulk Upload', icon: Upload, path: '/staff/bulk-upload' },
+  ],
+  platform_staff: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { label: 'Campuses', icon: Building2, path: '/admin/campuses' },
+    { label: 'Users', icon: Users, path: '/admin/users' },
+    { label: 'Subscriptions', icon: Layers, path: '/admin/subscriptions' },
+    { label: 'Audit Logs', icon: ScrollText, path: '/admin/audit-logs' },
+  ],
+  dean: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/dean' },
+    { label: 'Students', icon: GraduationCap, path: '/dean/students' },
+    { label: 'Teachers', icon: UserCheck, path: '/dean/teachers' },
+    { label: 'HODs & Mentors', icon: Briefcase, path: '/dean/academic-staff' },
+  ],
+  hod: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/hod' },
+    { label: 'Teachers', icon: UserCheck, path: '/hod/teachers' },
+    { label: 'Students', icon: GraduationCap, path: '/hod/students' },
+    { label: 'Mentors', icon: UserCog, path: '/hod/mentors' },
+  ],
+  mentor: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/mentor' },
+    { label: 'My Students', icon: GraduationCap, path: '/mentor/students' },
+  ],
 };
+
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuthStore();
@@ -47,15 +83,9 @@ export const DashboardLayout = () => {
   const closeSidebar = () => setSidebarOpen(false);
 
   const SidebarContent = () => (
-    <div
-      className="flex flex-col h-full"
-      style={{ background: "var(--sidebar-bg)", color: "var(--sidebar-text)" }}
-    >
-      {/* Logo & Header */}
-      <div
-        className="px-6 py-6"
-        style={{ borderBottom: "1px solid var(--sidebar-border)" }}
-      >
+    <>
+      {/* Logo */}
+      <div className="px-5 py-5 border-b border-slate-700/50">
         <div className="flex items-center justify-between">
           <Link
             to="/"
@@ -69,7 +99,7 @@ export const DashboardLayout = () => {
               className="font-bold text-lg tracking-tight uppercase"
               style={{ color: "var(--text-primary)" }}
             >
-              SYNTXARENA
+              CODEARENA
             </span>
           </Link>
           <button
@@ -81,36 +111,9 @@ export const DashboardLayout = () => {
             <X size={24} />
           </button>
         </div>
-
-        {/* User Info */}
-        <div
-          className="mt-8 flex items-center gap-3 p-3 rounded-xl"
-          style={{
-            background: "var(--bg-secondary)",
-            border: "1px solid var(--card-border)",
-          }}
-        >
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center font-bold uppercase"
-            style={{
-              background: "var(--bg-tertiary)",
-              color: "var(--text-muted)",
-              border: "1px solid var(--card-border)",
-            }}
-          >
-            {user?.name?.charAt(0)}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <p
-              className="text-sm font-bold truncate"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {user?.name}
-            </p>
-            <span className="text-[10px] text-[#2df07b] font-bold uppercase tracking-widest mt-0.5">
-              {role}
-            </span>
-          </div>
+        <div className="mt-3 px-1">
+          <p className="text-white text-sm font-medium truncate">{user?.name}</p>
+          <span className="text-xs text-slate-400 capitalize font-medium">{role}</span>
         </div>
       </div>
 
@@ -210,7 +213,7 @@ export const DashboardLayout = () => {
           Sign Out
         </button>
       </div>
-    </div>
+    </>
   );
 
   return (
@@ -228,12 +231,7 @@ export const DashboardLayout = () => {
       />
 
       {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 flex flex-col transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-        style={{ background: "var(--sidebar-bg)", borderRight: "1px solid var(--sidebar-border)" }}
-      >
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <SidebarContent />
       </aside>
 

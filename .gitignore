@@ -34,3 +34,4 @@ dist-ssr
 .gemini
 brain
 
+node_modules

@@ -24,8 +24,10 @@ export function Login() {
       const data = await authService.login({ email, password });
       login(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}!`);
-      const role = data.user.role.toLowerCase();
-      navigate(`/${role}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid credentials");
     } finally {
@@ -54,8 +56,10 @@ export function Login() {
       const data = await authService.loginOtp({ email, otp });
       login(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}!`);
-      const role = data.user.role.toLowerCase();
-      navigate(`/${role}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid or expired OTP');
     } finally {
@@ -73,8 +77,10 @@ export function Login() {
       const data = await authService.googleLogin({ token: credentialResponse.credential, role: googleLoginRole });
       login(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}!`);
-      const role = data.user.role.toLowerCase();
-      navigate(`/${role}`);
+      const role = data.user.role.toUpperCase();
+      if (role === 'SUPER_ADMIN') navigate('/admin');
+      else if (role === 'CAMPUS_ADMIN') navigate('/campus-admin');
+      else navigate(`/${role.toLowerCase()}`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Google verification failed.');
     } finally {
@@ -132,80 +138,141 @@ export function Login() {
         <div className="max-w-md w-full mx-auto md:ml-12">
           <h2 className="text-4xl font-light text-slate-800 mb-10">Sign In</h2>
 
-          <form onSubmit={handlePasswordLogin} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email address</label>
-              <input
-                className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors placeholder:text-gray-400"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
-              <div className="relative">
+          {loginMethod === 'OTP_VERIFY' ? (
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <div className="bg-blue-50 border border-blue-100 p-4 rounded text-blue-800 text-sm mb-6">
+                Enter the 6-digit OTP sent to <strong>{email}</strong>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#39424e] mb-2">Login OTP</label>
                 <input
-                  className="w-full bg-white border border-gray-200 rounded-full text-slate-800 px-6 py-3.5 focus:outline-none focus:border-[#2df07b] focus:ring-1 focus:ring-[#2df07b] transition-colors pr-12 placeholder:text-gray-400 font-mono tracking-widest text-lg"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 tracking-widest text-center text-lg focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4]"
+                  type="text"
+                  placeholder="------"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
                   required
                 />
+              </div>
+              <div className="pt-4 flex flex-col gap-4">
+                <button
+                  type="submit"
+                  disabled={loading || otp.length < 6}
+                  className="w-full bg-[#4C8CE4] hover:bg-[#4C8CE4] text-white font-semibold py-2.5 px-6 rounded flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : 'Verify & Sign In'}
+                </button>
                 <button
                   type="button"
-                  className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setLoginMethod('PASSWORD')}
+                  className="w-full bg-white border border-[#c2c7d0] text-[#39424e] font-semibold py-2.5 px-6 rounded"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  Back to Login Options
                 </button>
               </div>
-            </div>
-
-            <div className="flex items-center justify-between text-sm py-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#2df07b] focus:ring-[#2df07b]" />
-                <span className="text-gray-500">Remember me</span>
-              </label>
-              <Link to="/forgot-password" className="text-slate-700 hover:text-[#2df07b] transition-colors font-medium">
-                Forgot password?
-              </Link>
-            </div>
-
-            <div className="pt-2 flex flex-col sm:flex-row gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-6 rounded-full transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-sm"
-              >
-                {loading ? <Loader2 size={18} className="animate-spin" /> : null}
-                {loading ? 'Authenticating...' : 'Sign In'}
-              </button>
+            </form>
+          ) : (
+            <form onSubmit={loginMethod === 'PASSWORD' ? handlePasswordLogin : handleRequestOtp} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-[#39424e] mb-2">Email address</label>
+                <input
+                  className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4] transition-colors"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
               
-              <Link 
-                to="/register" 
-                className="flex-1 bg-black hover:bg-gray-900 text-[#2df07b] font-bold py-3.5 px-6 rounded-full transition-all flex items-center justify-center text-sm shadow-sm active:scale-95"
-              >
-                Register Account
-              </Link>
-            </div>
-          </form>
+              {loginMethod === 'PASSWORD' && (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-[#39424e]">Password</label>
+                    <Link to="/forgot-password" className="text-sm text-[#4C8CE4] hover:underline">Forgot password?</Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4] pr-10"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
-          <div className="flex items-center my-8">
-            <div className="flex-1 border-t border-gray-200"></div>
-            <span className="px-4 text-sm text-gray-400 bg-white">or</span>
-            <div className="flex-1 border-t border-gray-200"></div>
+              <div className="pt-4 flex flex-col gap-4">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#4C8CE4] hover:bg-[#4C8CE4] text-white font-semibold py-2.5 px-6 rounded flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : null}
+                  {loginMethod === 'PASSWORD' ? 'Sign In with Password' : 'Send Login OTP'}
+                </button>
+
+                {loginMethod === 'PASSWORD' ? (
+                  <button
+                    type="button"
+                    onClick={() => setLoginMethod('OTP_REQUEST')}
+                    className="w-full bg-white border border-[#4C8CE4] text-[#4C8CE4] font-semibold py-2.5 px-6 rounded transition-colors"
+                  >
+                    Passwordless Login (OTP)
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setLoginMethod('PASSWORD')}
+                    className="w-full bg-white border border-[#c2c7d0] text-[#39424e] font-semibold py-2.5 px-6 rounded transition-colors"
+                  >
+                    Use Password Instead
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
+
+          <div className="relative flex items-center py-6">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink-0 mx-4 text-gray-400 text-sm">Or</span>
+            <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 rounded-full py-3.5 hover:bg-gray-50 transition-colors shadow-sm">
+          <div className="flex justify-center w-full mb-6">
+            <div className="w-full">
+              <label className="block text-sm font-medium text-[#39424e] mb-2 text-center">
+                Signing in with Google as...
+              </label>
+              <select
+                className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4] transition-colors appearance-none cursor-pointer text-center"
+                value={googleLoginRole}
+                onChange={(e) => setGoogleLoginRole(e.target.value)}
+              >
+                <option value="STUDENT">Student</option>
+                <option value="TEACHER">Teacher</option>
+              </select>
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => {/* Google Login Logic handled by GoogleOAuthProvider in main.jsx */}}
+            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 rounded-full py-3.5 hover:bg-gray-50 transition-colors shadow-sm"
+          >
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
             <span className="font-medium text-slate-700 text-sm">Continue with Google</span>
           </button>
-
         </div>
       </div>
     </div>

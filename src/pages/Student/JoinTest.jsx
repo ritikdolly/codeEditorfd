@@ -18,7 +18,7 @@ export default function JoinTest() {
     api.get(`/student/tests/${shareLink}`)
        .then(res => setTestDetails(res.data))
        .catch(err => {
-           toast.error("Invalid protocol link or unauthorized access vector.");
+           toast.error("Invalid test link or unauthorized access.");
            navigate('/');
        })
        .finally(() => setLoading(false));
@@ -39,7 +39,7 @@ export default function JoinTest() {
         {loading ? (
           <div className="flex flex-col items-center gap-4">
              <div className="w-12 h-12 rounded-2xl border-2 border-[#2df07b]/20 border-t-[#2df07b] animate-spin"></div>
-             <div className="text-gray-500 text-sm font-bold uppercase tracking-[0.3em] animate-pulse">Syncing Vector...</div>
+             <div className="text-gray-500 text-sm font-bold uppercase tracking-[0.3em] animate-pulse">Loading Test...</div>
           </div>
         ) : testDetails ? (
           <div className="bg-[#111111] p-12 max-w-xl w-full shadow-2xl rounded-[48px] text-center border border-white/10 relative overflow-hidden group">
@@ -58,7 +58,7 @@ export default function JoinTest() {
                </h1>
                <p className="text-[#2df07b] text-[10px] font-bold uppercase tracking-[0.4em] mb-12 flex items-center gap-3">
                  <span className="w-1.5 h-1.5 rounded-full bg-[#2df07b] animate-pulse"></span>
-                 Authorized Assessment Cluster
+                 Authorized Test Session
                </p>
 
                <div className="bg-black/40 rounded-[32px] p-8 mb-12 text-left border border-white/5 w-full space-y-8 shadow-inner">
@@ -68,7 +68,7 @@ export default function JoinTest() {
                           <Clock size={18} />
                        </div>
                        <div>
-                          <span className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Duration Spectrum</span>
+                          <span className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Test Duration</span>
                           <span className="text-[17px] font-bold text-white">{testDetails.duration} Minutes</span>
                        </div>
                     </div>
@@ -84,7 +84,7 @@ export default function JoinTest() {
                        <User size={18} />
                     </div>
                     <div>
-                       <span className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Identified Candidate</span>
+                       <span className="block text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Student Details</span>
                        <span className="text-[15px] font-bold text-white tracking-tight">{user?.name} <span className="text-gray-600 font-medium ml-2">{user?.email}</span></span>
                     </div>
                  </div>
@@ -96,15 +96,15 @@ export default function JoinTest() {
                  className="w-full py-5 px-8 bg-[#2df07b] hover:bg-[#25c464] text-black rounded-2xl font-bold text-sm shadow-xl shadow-[#2df07b]/10 transition-all uppercase tracking-widest active:scale-95 disabled:bg-white/5 disabled:text-gray-600 disabled:border-white/5 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                >
                  {testDetails.status === "ACTIVE" ? (
-                   <>Initialize Protocol <Zap size={18} fill="currentColor" /></>
+                   <>Start Test <Zap size={18} fill="currentColor" /></>
                  ) : (
-                   <>Awaiting Signal Transition...</>
+                   <>Waiting for test to start...</>
                  )}
                </button>
                
                {testDetails.status !== "ACTIVE" && (
                  <p className="text-[10px] text-gray-700 mt-6 font-bold uppercase tracking-widest animate-pulse">
-                   Protocol authorization pending from host.
+                   Waiting for the teacher to start the test.
                  </p>
                )}
             </div>

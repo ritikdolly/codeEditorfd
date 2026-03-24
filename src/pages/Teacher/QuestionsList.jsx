@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { teacherService } from '../../services/api';
-import { PlusCircle, Search, Filter, Edit2, Trash2, BookOpen, Clock, Award, ArrowLeft, Loader2 } from 'lucide-react';
+import { PlusCircle, Search, Filter, Edit2, Trash2, BookOpen, Clock, Award, ArrowLeft, Loader2, Globe, Lock, Landmark } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -143,6 +143,26 @@ export function QuestionsList() {
                       <div className="flex items-center gap-1.5">
                         <Clock size={14} className="text-blue-500/50" />
                         <span>{q.expectedTimeComplexity || 'O(N)'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900/50 border border-slate-800">
+                        {q.visibility === 'GLOBAL' && (
+                          <div className="flex items-center gap-1.5 text-emerald-400">
+                            <Globe size={12} />
+                            <span className="text-[10px] uppercase tracking-tighter">Global Library</span>
+                          </div>
+                        )}
+                        {q.visibility === 'CAMPUS' && (
+                          <div className="flex items-center gap-1.5 text-blue-400">
+                            <Landmark size={12} />
+                            <span className="text-[10px] uppercase tracking-tighter">Campus Only</span>
+                          </div>
+                        )}
+                        {q.visibility === 'PRIVATE' && (
+                          <div className="flex items-center gap-1.5 text-purple-400">
+                            <Lock size={12} />
+                            <span className="text-[10px] uppercase tracking-tighter">Private</span>
+                          </div>
+                        )}
                       </div>
                       <div className="hidden md:block truncate text-slate-600 font-medium italic">
                         {q.description.substring(0, 100)}...
