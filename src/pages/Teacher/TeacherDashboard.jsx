@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
-import { teacherService } from '../../services/api';
-import { PlusCircle, ClipboardList, BookOpen, HelpCircle, ArrowRight, Activity, Calendar, Award } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from "react";
+import { teacherService } from "../../services/api";
+import { PlusCircle, ClipboardList, BookOpen, HelpCircle, ArrowRight, Activity, Calendar, Award, Zap, ChevronRight, LayoutDashboard, Database, Clock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
 
 export function TeacherDashboard() {
   const [questions, setQuestions] = useState([]);
   const [tests, setTests] = useState([]);
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     teacherService.getQuestions().then(setQuestions).catch(console.error);
@@ -20,100 +20,162 @@ export function TeacherDashboard() {
       .catch(console.error);
   }, []);
 
-  const difficultyColor = { EASY: 'text-green-400', MEDIUM: 'text-yellow-400', HARD: 'text-red-400' };
+  const difficultyColor = {
+     EASY: "text-[#2df07b] bg-[#2df07b]/10 border-[#2df07b]/20",
+     MEDIUM: "text-amber-500 bg-amber-500/10 border-amber-500/20",
+     HARD: "text-rose-500 bg-rose-500/10 border-rose-500/20",
+  };
 
   return (
-    <div className="p-8 space-y-10 max-w-7xl mx-auto">
-      {/* Header Section */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-700">
+    <div className="animate-fade-in pb-20 space-y-12 relative z-10">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10" style={{ borderBottom: "1px solid var(--divider)" }}>
         <div>
-          <h1 className="text-4xl font-black text-white tracking-tight">
-            Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">{user?.name}</span> 👋
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-[#2df07b]/10 text-[#2df07b] rounded-lg border border-[#2df07b]/20">
+              <LayoutDashboard size={20} strokeWidth={2.5} />
+            </div>
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: "var(--text-muted)" }}>
+              Teacher Dashboard
+            </span>
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+            Dashboard
           </h1>
-          <p className="text-slate-400 mt-2 text-lg font-medium">Manage your elite coding assessments and questions</p>
+          <p className="mt-3 text-[16px] font-medium max-w-xl" style={{ color: "var(--text-muted)" }}>
+            Welcome back,{" "}
+            <span className="font-bold" style={{ color: "var(--text-primary)" }}>{user?.name}</span>. Manage
+            your question bank and active tests.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/teacher/questions/create" className="btn-primary flex items-center gap-2 group whitespace-nowrap">
-            <PlusCircle size={18} className="group-hover:rotate-90 transition-transform duration-300" />
-            <span>New Question</span>
+        <div className="flex items-center gap-4">
+          <Link
+            to="/teacher/questions/create"
+            className="font-bold py-3.5 px-6 rounded-xl transition-all flex items-center gap-3 text-sm uppercase tracking-widest group"
+            style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", color: "var(--text-muted)", boxShadow: "var(--card-shadow)" }}
+          >
+            <Database size={18} className="group-hover:rotate-12 transition-transform" /> New Question
           </Link>
-          <Link to="/teacher/tests/create" className="btn-secondary flex items-center gap-2 group whitespace-nowrap">
-            <Calendar size={18} className="text-purple-400" />
-            <span>Schedule Test</span>
+          <Link
+            to="/teacher/tests/create"
+            className="bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-3.5 px-8 rounded-xl transition-all flex items-center gap-3 text-sm shadow-lg shadow-[#2df07b]/20 active:scale-95 uppercase tracking-widest"
+          >
+            <Zap size={18} fill="currentColor" stroke="none" /> Create Test
           </Link>
         </div>
-      </header>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {(() => {
-          const now = Date.now();
-          const upcomingTests = tests.filter(t => t.startTime && new Date(t.startTime).getTime() > now);
-          upcomingTests.sort((a,b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-          
-          const nextSessionVal = upcomingTests.length > 0 
-            ? new Date(upcomingTests[0].startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) 
-            : 'None';
-          const nextSessionDesc = upcomingTests.length > 0
-            ? upcomingTests[0].name
-            : 'No upcoming tests';
-
-          return [
-            { label: 'Total Questions', val: questions.length, icon: HelpCircle, color: 'purple', desc: 'Active bank' },
-            { label: 'Tests Conducted', val: tests.length, icon: ClipboardList, color: 'blue', desc: 'Lifetime count' },
-            { label: 'Next Session', val: nextSessionVal, icon: Activity, color: 'emerald', desc: nextSessionDesc }
-          ].map((stat, i) => (
-          <div key={i} className="glass-card p-6 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300 relative group overflow-hidden">
+        {[
+          { label: 'Total Questions', val: questions.length, icon: HelpCircle, color: 'purple', desc: 'Active bank' },
+          { label: 'Tests Conducted', val: tests.length, icon: ClipboardList, color: 'blue', desc: 'Lifetime count' },
+          { label: 'Next Session', val: 'Soon', icon: Activity, color: 'emerald', desc: 'Upcoming' }
+        ].map((stat, i) => (
+          <div
+            key={i}
+            className="rounded-2xl p-6 transition-all duration-300 relative group overflow-hidden"
+            style={{ background: "var(--stat-bg)", border: "1px solid var(--stat-border)", boxShadow: "var(--card-shadow)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--card-hover-border)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--stat-border)"; }}
+          >
             <div className={`absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity p-4`}>
               <stat.icon size={120} className={`text-${stat.color}-400`} />
             </div>
-            <div className="flex items-center gap-4 mb-4">
-              <div className={`p-3 rounded-2xl bg-${stat.color}-500/10 border border-${stat.color}-500/20 shadow-lg shadow-${stat.color}-500/5`}>
-                <stat.icon size={24} className={`text-${stat.color}-400`} />
+            <div className="flex flex-col">
+              <span className="font-bold text-[11px] uppercase tracking-[0.2em] mb-6" style={{ color: "var(--text-muted)" }}>
+                {stat.label}
+              </span>
+              <div className="flex items-end justify-between relative z-10">
+                <p className="text-5xl font-bold leading-none tracking-tighter" style={{ color: "var(--text-primary)" }}>
+                  {stat.val}
+                </p>
+                <div
+                  className="p-3 rounded-xl transition-all"
+                  style={{ background: "var(--bg-secondary)", border: "1px solid var(--card-border)", color: "var(--icon-muted)" }}
+                >
+                  <stat.icon size={24} />
+                </div>
               </div>
-              <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">{stat.label}</span>
-            </div>
-            <div>
-              <p className="text-4xl font-black text-white">{stat.val}</p>
-              <p className="text-slate-500 text-xs mt-1 font-medium italic">{stat.desc}</p>
+              <p className="text-[11px] font-bold mt-5 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity" style={{ color: "var(--text-muted)" }}>
+                {stat.desc}
+              </p>
             </div>
           </div>
-          ));
-        })()}
+        ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Questions Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-12">
+        {/* Recent Questions */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-              <span className="p-1.5 rounded-lg bg-purple-500/20 text-purple-400"><BookOpen size={20} /></span>
-              Recent Questions
-            </h2>
-            <Link to="/teacher/questions" className="text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest flex items-center gap-2 group">
-              View All <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          <div className="flex items-center justify-between px-2">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight uppercase" style={{ color: "var(--text-primary)" }}>
+                Question Bank
+              </h2>
+              <p className="text-[11px] font-bold uppercase tracking-widest mt-1.5" style={{ color: "var(--text-muted)" }}>
+                Recently added questions
+              </p>
+            </div>
+            <Link
+              to="/teacher/questions"
+              className="p-2.5 rounded-xl transition-all group"
+              style={{ background: "var(--bg-secondary)", border: "1px solid var(--card-border)", color: "var(--icon-muted)" }}
+            >
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-          
+
           {questions.length === 0 ? (
-            <div className="glass-card p-12 text-center border-dashed border-slate-700">
-               <HelpCircle size={40} className="mx-auto text-slate-700 mb-4" />
-               <p className="text-slate-500 font-medium">No questions yet. Your bank is empty.</p>
+            <div
+              className="border-dashed rounded-3xl p-16 flex flex-col items-center justify-center text-center"
+              style={{ background: "var(--card-bg)", border: "2px dashed var(--card-border)" }}
+            >
+              <BookOpen size={64} strokeWidth={1} className="mb-6" style={{ color: "var(--empty-icon)" }} />
+              <p className="text-sm font-bold uppercase tracking-widest leading-relaxed" style={{ color: "var(--empty-text)" }}>
+                No questions found. <br /> Create your first question.
+              </p>
+              <Link
+                to="/teacher/questions/create"
+                className="mt-8 font-bold text-[11px] uppercase border-b border-[#2df07b] pb-1 hover:text-[#2df07b] transition-colors"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Create Question
+              </Link>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {questions.slice(0, 4).map(q => (
-                <div key={q.id} className="glass-card p-4 border border-slate-700/50 hover:bg-slate-800/20 hover:translate-x-1 transition-all group flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center font-bold text-slate-500 group-hover:text-purple-400 group-hover:bg-purple-500/10 transition-colors">
-                       {q.title.charAt(0)}
+            <div className="grid gap-3">
+              {questions.slice(0, 5).map((q) => (
+                <div
+                  key={q.id}
+                  onClick={() => navigate(`/teacher/questions`)}
+                  className="group rounded-2xl p-4.5 flex items-center justify-between transition-all cursor-pointer"
+                  style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", boxShadow: "var(--card-shadow)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--card-hover-border)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--card-border)"; }}
+                >
+                  <div className="flex items-center gap-5 min-w-0 pr-4">
+                    <div
+                      className="w-11 h-11 rounded-xl flex items-center justify-center transition-all"
+                      style={{ background: "var(--bg-secondary)", border: "1px solid var(--card-border)", color: "var(--icon-muted)" }}
+                    >
+                      <Database size={18} />
                     </div>
                     <div>
-                      <p className="font-bold text-white group-hover:text-purple-300 transition-colors truncate max-w-[200px]">{q.title}</p>
-                      <p className="text-slate-500 text-[11px] font-bold uppercase tracking-tight mt-0.5">{q.marks} Marks · {q.expectedTimeComplexity || 'O(N)'}</p>
+                      <p className="font-bold text-[15px] truncate uppercase tracking-tight" style={{ color: "var(--text-primary)" }}>
+                        {q.title}
+                      </p>
+                      <div className="flex items-center gap-4 text-[10px] mt-1.5 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                        <span>{q.marks} Pts</span>
+                        <div className="w-1 h-1 rounded-full" style={{ background: "var(--divider)" }}></div>
+                        <span className="flex items-center gap-1.5">
+                          <Zap size={12} className="text-amber-500" />{" "}
+                          {q.expectedTimeComplexity || "O(n)"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <span className={`text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider ${difficultyColor[q.difficulty] || 'text-slate-400'} bg-slate-900/50 border border-slate-800`}>
+                  <span className={`text-[9px] font-bold px-3 py-1 rounded-lg border uppercase tracking-widest shrink-0 transition-all ${difficultyColor[q.difficulty] || "text-gray-500 bg-gray-500/10 border-gray-500/20"}`}>
                     {q.difficulty}
                   </span>
                 </div>
@@ -122,39 +184,87 @@ export function TeacherDashboard() {
           )}
         </div>
 
-        {/* Tests Section */}
+        {/* Test History */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white flex items-center gap-3">
-              <span className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400"><ClipboardList size={20} /></span>
-              Active Tests
-            </h2>
-            <Link to="/teacher/results" className="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-2 group">
-              Manage results <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          <div className="flex items-center justify-between px-2">
+            <div>
+              <h2 className="text-2xl font-bold tracking-tight uppercase" style={{ color: "var(--text-primary)" }}>
+                History
+              </h2>
+              <p className="text-[11px] font-bold uppercase tracking-widest mt-1.5" style={{ color: "var(--text-muted)" }}>
+                Recent test activity
+              </p>
+            </div>
+            <Link
+              to="/teacher/results"
+              className="p-2.5 rounded-xl transition-all group"
+              style={{ background: "var(--bg-secondary)", border: "1px solid var(--card-border)", color: "var(--icon-muted)" }}
+            >
+              <Activity size={20} className="group-hover:scale-110 transition-transform" />
             </Link>
           </div>
 
           {tests.length === 0 ? (
-            <div className="glass-card p-12 text-center border-dashed border-slate-700">
-               <Award size={40} className="mx-auto text-slate-700 mb-4" />
-               <p className="text-slate-500 font-medium">No tests created yet. Scale your impact!</p>
+            <div
+              className="border-dashed rounded-3xl p-16 flex flex-col items-center justify-center text-center"
+              style={{ background: "var(--card-bg)", border: "2px dashed var(--card-border)" }}
+            >
+              <ClipboardList size={64} strokeWidth={1} className="mb-6" style={{ color: "var(--empty-icon)" }} />
+              <p className="text-sm font-bold uppercase tracking-widest leading-relaxed" style={{ color: "var(--empty-text)" }}>
+                No tests created yet. <br /> Create your first test.
+              </p>
+              <Link
+                to="/teacher/tests/create"
+                className="mt-8 font-bold text-[11px] uppercase border-b border-[#2df07b] pb-1 hover:text-[#2df07b] transition-colors"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Create Test
+              </Link>
             </div>
           ) : (
-            <div className="grid gap-4">
-              {tests.slice(0, 4).map(t => (
-                <div key={t.id} className="glass-card p-5 border border-slate-700/50 hover:bg-slate-800/30 hover:shadow-2xl hover:shadow-purple-500/5 transition-all group">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="font-black text-white text-lg group-hover:text-purple-300 transition-colors">{t.name}</h3>
-                      <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1 italic">{t.duration} Minutes Duration</p>
+            <div className="grid gap-3">
+              {tests.slice(0, 5).map((t) => (
+                <div
+                  key={t.id}
+                  onClick={() => navigate(`/teacher/tests/${t.id}`)}
+                  className="group rounded-2xl p-5 flex items-center justify-between transition-all cursor-pointer relative overflow-hidden"
+                  style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", boxShadow: "var(--card-shadow)" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--card-hover-border)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--card-border)"; }}
+                >
+                  {/* Hover accent bar */}
+                  <div className="absolute top-0 left-0 h-full w-1 bg-[#2df07b] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                  <div className="flex-1 min-w-0 pr-6">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border ${t.status === "ACTIVE" ? "bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20" : "bg-gray-500/10 border-gray-500/20"}`}
+                        style={t.status !== "ACTIVE" ? { color: "var(--text-muted)" } : {}}>
+                        {t.status}
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-faint)" }}>
+                        ID: {t.id.slice(0, 8)}
+                      </span>
                     </div>
-                    <div className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full">
-                       <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">{t.status}</span>
+                    <p className="font-bold text-[16px] group-hover:text-[#2df07b] transition-colors uppercase tracking-tight truncate" style={{ color: "var(--text-primary)" }}>
+                      {t.name}
+                    </p>
+                    <div className="flex items-center gap-4 text-[10px] mt-2 font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                      <span className="flex items-center gap-2">
+                        <Clock size={14} /> {t.duration}M
+                      </span>
+                      <div className="w-1 h-1 rounded-full" style={{ background: "var(--divider)" }}></div>
+                      <span className="flex items-center gap-2">
+                        <Calendar size={14} />{" "}
+                        {new Date(t.startTime).toLocaleDateString([], { month: "short", day: "numeric" })}
+                      </span>
                     </div>
                   </div>
-                  <Link to={`/teacher/tests/${t.id}`} className="w-full py-2 bg-slate-800/50 hover:bg-purple-600 border border-slate-700 group-hover:border-purple-500 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all text-center flex items-center justify-center gap-2">
-                    Open Control Center <ArrowRight size={14} />
-                  </Link>
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                    style={{ background: "var(--bg-secondary)", border: "1px solid var(--card-border)", color: "var(--icon-muted)" }}
+                  >
+                    <ChevronRight size={20} />
+                  </div>
                 </div>
               ))}
             </div>

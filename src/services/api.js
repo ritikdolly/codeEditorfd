@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api/v1';
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -53,4 +53,10 @@ export const studentService = {
   saveDraft: (testId, questionId, code) => api.put(`/student/attempts/${testId}/questions/${questionId}/draft`, { code }).then(r => r.data),
   getDraft: (testId, questionId) => api.get(`/student/attempts/${testId}/questions/${questionId}/draft`).then(r => r.data),
   getServerTime: () => api.get('/time').then(r => r.data),
+};
+
+// --- Admin API ---
+export const adminService = {
+  getDashboard: () => api.get('/admin/dashboard').then(r => r.data),
+  getAllUsers: () => api.get('/admin/users').then(r => r.data),
 };

@@ -1,90 +1,97 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { teacherService } from '../../services/api';
+import { 
+  ChevronRight, 
+  ChevronDown, 
+  Copy, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  Users, 
+  Trophy, 
+  Target,
+  ArrowLeft,
+  Share2,
+  Calendar,
+  Layout,
+  ExternalLink,
+  BarChart3,
+  Search,
+  BookOpen,
+  Download
+} from 'lucide-react';
 import QRCode from 'react-qr-code';
-import { Clock, Copy, QrCode, BookOpen, Download, UserCircle, ChevronDown, ChevronRight, Users, Eye, CheckCircle, XCircle, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const difficultyColor = { EASY: 'badge-green', MEDIUM: 'text-yellow-400 bg-yellow-500/10', HARD: 'badge-red' };
-
-export function TestDetail() {
+export const TestDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [test, setTest] = useState(null);
   const [questions, setQuestions] = useState([]);
-  const [results, setResults] = useState([]); 
-  const [analytics, setAnalytics] = useState(null);
-  
-  // States for expandable rows
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [expandedStudentId, setExpandedStudentId] = useState(null);
-  const [studentDetails, setStudentDetails] = useState({}); // { studentId: [SubmissionReportDto] }
+  const [studentDetails, setStudentDetails] = useState({});
   const [loadingDetails, setLoadingDetails] = useState(false);
-
+  const [sortConfig, setSortConfig] = useState({ key: 'studentName', direction: 'asc' });
   const [filterQuery, setFilterQuery] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: 'totalScore', direction: 'desc' });
 
   const testLink = `${window.location.origin}/student/test/${id}`;
 
+  const copyTestLink = () => {
+    navigator.clipboard.writeText(testLink);
+    toast.success('Test link copied to clipboard!');
+  };
+
   useEffect(() => {
-    teacherService.getTests()
-      .then(tests => {
-        const found = tests.find(t => t.id === id);
-        setTest(found || null);
-      })
-      .catch(console.error);
-
-    teacherService.getTestQuestions(id)
-      .then(setQuestions)
-      .catch(err => toast.error('Could not load test questions'));
-
-    teacherService.getTestResults(id)
-      .then(data => {
-        // Sorting results by total score descending as a default for results
-        const sortedResults = [...data].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
-        setResults(sortedResults);
-      })
-      .catch(err => console.error("Could not load results", err));
-
-    teacherService.getTestAnalytics(id)
-      .then(setAnalytics)
-      .catch(err => console.error("Could not load analytics", err));
+    fetchTestData();
   }, [id]);
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(testLink);
-    toast.success('Test link copied!');
+  const fetchTestData = async () => {
+    try {
+      setLoading(true);
+      const [questionsData, resultsData] = await Promise.all([
+        teacherService.getTestQuestions(id),
+        teacherService.getTestResults(id)
+      ]);
+      // Build a pseudo test object from the questions/results data
+      const testMeta = {
+        id,
+        name: questionsData?.[0]?.testName || `Test ${id.slice(0,8)}`,
+        duration: questionsData?.[0]?.testDuration || 60,
+        createdAt: new Date().toISOString(),
+        startTime: null,
+        endTime: null,
+      };
+      setTest(testMeta);
+      setQuestions(questionsData || []);
+      setResults(resultsData || []);
+    } catch (error) {
+      toast.error('Failed to load test data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleStudentExpansion = async (studentId) => {
     if (expandedStudentId === studentId) {
-        setExpandedStudentId(null);
-        return;
+      setExpandedStudentId(null);
+      return;
     }
-    
+
     setExpandedStudentId(studentId);
-    
-    // Fetch details if we don't already have them
     if (!studentDetails[studentId]) {
-      setLoadingDetails(true);
       try {
+        setLoadingDetails(true);
         const details = await teacherService.getStudentTestDetails(id, studentId);
-        // Sort individual student question submissions by time descending (newest first)
-        const sortedDetails = [...details].sort((a, b) => new Date(b.submissionTime) - new Date(a.submissionTime));
-        setStudentDetails(prev => ({ ...prev, [studentId]: sortedDetails }));
-      } catch (err) {
-        toast.error('Failed to load student question details');
-        console.error(err);
+        setStudentDetails(prev => ({ ...prev, [studentId]: details }));
+      } catch (error) {
+        toast.error('Failed to load student details');
       } finally {
         setLoadingDetails(false);
       }
     }
-  };
-
-  const handleSort = (key) => {
-    let direction = 'desc';
-    if (sortConfig.key === key && sortConfig.direction === 'desc') {
-      direction = 'asc';
-    }
-    setSortConfig({ key, direction });
   };
 
   const processedResults = useMemo(() => {
@@ -135,7 +142,7 @@ export function TestDetail() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${test.name.replace(/\s+/g, '_')}_Aggregated_Results.csv`);
+    link.setAttribute("download", `${(test?.name || 'test').replace(/\s+/g, '_')}_Results.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -176,306 +183,276 @@ export function TestDetail() {
     return `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
   };
 
-  if (!test) return (
+  if (loading || !test) return (
     <div className="p-6 flex items-center justify-center min-h-[400px]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2df07b]"></div>
     </div>
   );
 
-  const SortHeader = ({ label, sortKey, align='left' }) => (
-    <th 
-      className={`px-4 py-3 font-medium cursor-pointer hover:bg-slate-700/30 transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
-      onClick={() => handleSort(sortKey)}
-    >
-      <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : ''}`}>
-        {label}
-        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-purple-400' : 'text-slate-600'}`}>
-          <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
-          <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
-        </span>
-      </div>
-    </th>
-  );
-
-  const totalMarks = questions.reduce((sum, q) => sum + (q.marks || 0), 0);
+  const totalPossibleMarks = questions.reduce((sum, q) => sum + (q.marks || 0), 0);
+  const averageAccuracy = results.length > 0
+    ? results.reduce((sum, r) => sum + (r.overallAccuracy || 0), 0) / results.length
+    : 0;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">{test.name}</h1>
-        <p className="text-slate-400 mt-1">Test configuration, QR Code, and Student Results</p>
-      </div>
-
-      {/* Analytics Widgets */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
-        {[
-          { label: 'Registered', val: analytics?.totalStudentsRegistered, color: 'blue', icon: Users, desc: 'Total' },
-          { label: 'Appeared', val: analytics?.totalStudentsAppeared, color: 'purple', icon: Eye, desc: 'Active' },
-          { label: 'Completed', val: analytics?.totalStudentsCompleted, color: 'amber', icon: BarChart3, desc: 'Finished' },
-          { label: 'Passed', val: analytics?.totalStudentsPassed, color: 'emerald', icon: CheckCircle, desc: 'Success' },
-          { label: 'Failed', val: analytics?.totalStudentsFailed, color: 'rose', icon: XCircle, desc: 'Review' }
-        ].map((stat, i) => (
-          <div key={i} className="glass-card p-5 border border-slate-700/50 hover:border-slate-500 transition-all group overflow-hidden relative">
-            <div className={`absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity`}>
-               <stat.icon size={60} className={`text-${stat.color}-400`} />
-            </div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className={`p-1.5 rounded-lg bg-${stat.color}-500/10 border border-${stat.color}-500/20`}>
-                <stat.icon size={14} className={`text-${stat.color}-400`} />
-              </div>
-              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{stat.label}</span>
-            </div>
-            <div>
-              <p className="text-3xl font-black text-white leading-none">{stat.val || 0}</p>
-              <p className="text-[10px] text-slate-500 font-bold mt-1.5 uppercase tracking-tighter italic opacity-60">{stat.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="pb-20 relative z-10 animate-fade-in">
+      <div className="max-w-7xl mx-auto space-y-12">
         
-        {/* Left Column: Test Info & QR Code */}
-        <div className="space-y-6 col-span-1">
-          {/* QR Code Card */}
-          <div className="glass-card p-6 flex flex-col items-center gap-5">
-            <div className="flex items-center gap-2">
-              <QrCode size={18} className="text-purple-400" />
-              <h2 className="text-base font-semibold text-white">Share with Students</h2>
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b border-white/5">
+          <div className="space-y-4">
+             <button 
+                onClick={() => navigate('/teacher')}
+                className="flex items-center gap-2.5 text-[11px] font-bold text-gray-500 uppercase tracking-widest hover:text-[#2df07b] transition-colors group"
+             >
+                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                Return to Dashboard
+             </button>
+             <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#2df07b]/10 border border-[#2df07b]/20 flex items-center justify-center text-[#2df07b] shadow-[0_0_20px_rgba(45,240,123,0.1)]">
+                   <Target size={28} />
+                </div>
+                <div>
+                   <h1 className="text-4xl font-bold text-white tracking-tight uppercase">{test?.name}</h1>
+                   <div className="flex items-center gap-6 mt-3">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Calendar size={14} />
+                         <span className="text-[11px] font-bold uppercase tracking-widest">{new Date(test?.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Clock size={14} />
+                         <span className="text-[11px] font-bold uppercase tracking-widest">{test?.duration} Minute Window</span>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate(`/teacher/monitor/${id}`)}
+              className="flex items-center gap-3 bg-black border border-white/10 text-white px-8 py-4 rounded-2xl font-bold text-[12px] uppercase tracking-widest hover:border-[#2df07b] hover:bg-[#2df07b]/5 transition-all shadow-xl group"
+            >
+              <Layout size={18} className="text-[#2df07b] group-hover:scale-110 transition-transform" />
+              Live Monitor
+            </button>
+            <button 
+              onClick={copyTestLink}
+              className="flex items-center gap-3 bg-[#2df07b] text-black px-8 py-4 rounded-2xl font-bold text-[12px] uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_rgba(45,240,123,0.3)]"
+            >
+              <Share2 size={18} />
+              Share Test
+            </button>
+          </div>
+        </div>
+
+        {/* Analytics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+           {[
+             { label: 'Submissions', value: results.length, icon: Users, color: 'text-white' },
+             { label: 'Avg Accuracy', value: `${Math.round(averageAccuracy)}%`, icon: Target, color: 'text-[#2df07b]' },
+             { label: 'Max Marks', value: totalPossibleMarks, icon: Trophy, color: 'text-amber-400' },
+             { label: 'Status', value: timeLeft || 'ACTIVE', icon: CheckCircle2, color: 'text-[#2df07b]' }
+           ].map((stat, i) => (
+             <div key={i} className="bg-[#111111] p-8 border border-white/5 rounded-[32px] transition-all hover:border-[#2df07b]/20 group shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">{stat.label}</p>
+                  <stat.icon size={18} className="text-gray-600 group-hover:text-white transition-colors" />
+                </div>
+                <p className={`text-4xl font-bold ${stat.color} font-outfit uppercase tracking-tight`}>{stat.value}</p>
+             </div>
+           ))}
+        </div>
+
+        {/* Results Table */}
+        <div className="bg-[#111111] border border-white/5 rounded-[40px] shadow-2xl overflow-hidden">
+          <div className="px-10 py-6 border-b border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Users size={18} className="text-[#2df07b]" />
+              <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">Student Submissions</h2>
+              <span className="bg-[#2df07b]/10 text-[#2df07b] text-[10px] font-bold px-3 py-1 rounded-full">{processedResults.length}</span>
             </div>
-
-            <div className="bg-white p-4 rounded-2xl shadow-xl">
-              <QRCode value={testLink} size={150} />
-            </div>
-
-            <p className="text-slate-400 text-sm text-center">Scan QR or share link</p>
-
-            <div className="w-full flex items-center gap-2">
-              <div className="flex-1 bg-slate-800/80 border border-slate-700/50 rounded-xl px-3 py-2 text-slate-300 text-xs font-mono truncate">
-                {testLink}
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                <input
+                  className="bg-black/40 border border-white/10 rounded-xl text-[12px] font-bold text-white px-5 py-2.5 pl-11 focus:outline-none focus:border-[#2df07b]/50 transition-all placeholder:text-gray-700 w-64"
+                  value={filterQuery}
+                  onChange={(e) => setFilterQuery(e.target.value)}
+                  placeholder="Search students..."
+                />
               </div>
-              <button onClick={copyLink} className="btn-secondary px-3 py-2 shrink-0" title="Copy link">
-                <Copy size={14} />
+              <button onClick={downloadResultsCSV} disabled={results.length === 0}
+                className="flex items-center gap-2 bg-[#2df07b] hover:bg-[#25c464] text-black font-bold text-[11px] uppercase tracking-widest px-5 py-2.5 rounded-xl transition-all active:scale-95 disabled:opacity-50">
+                <Download size={14} /> Export CSV
               </button>
             </div>
           </div>
 
-          {/* Test Info */}
-          <div className="glass-card p-6 border border-slate-700/50 space-y-6">
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-700/30">
-              <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                <Clock size={18} className="text-purple-400" />
-              </div>
-              <span className="text-white font-black text-sm uppercase tracking-widest">Protocol Stats</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-              <div className="space-y-1">
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Timeline</p>
-                <p className="text-white text-sm font-bold">{test.duration} Mins</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Budget</p>
-                <p className="text-white text-sm font-bold">{totalMarks} Marks</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Pass Threshold (50%)</p>
-                <p className="text-emerald-400 text-sm font-bold">{(totalMarks * 0.5).toFixed(1)} Marks</p>
-              </div>
-              <div className="col-span-2 space-y-1">
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Window Open</p>
-                <p className="text-white text-xs font-medium font-mono">
-                  {test.startTime ? new Date(test.startTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
-                </p>
-              </div>
-              <div className="col-span-2 space-y-1">
-                <p className="text-slate-500 text-[10px] font-black uppercase tracking-tighter">Window Close</p>
-                <p className="text-white text-xs font-medium font-mono">
-                  {test.endTime ? new Date(test.endTime).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}
-                </p>
-              </div>
-            </div>
-
-            {timeLeft && (
-              <div className="mt-4 p-4 rounded-2xl bg-slate-950/50 border border-purple-500/20 text-center shadow-inner relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50"></div>
-                <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-80">Syncing Countdown</p>
-                <p className="text-white text-2xl font-black font-mono tracking-tight">{timeLeft}</p>
-              </div>
-            )}
+          <div className="overflow-x-auto custom-scrollbar">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-white/[0.02] border-b border-white/5">
+                  <th className="px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest w-10"></th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest">Student</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest text-center">Submission Status</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest">Score</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest">Accuracy</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest">Evaluation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.02]">
+                {processedResults.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-16 text-center text-gray-600 text-sm font-medium">
+                      No student submissions recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  processedResults.map((r) => (
+                    <React.Fragment key={r.studentId}>
+                        <tr 
+                            className={`hover:bg-white/[0.01] cursor-pointer transition-all group ${expandedStudentId === r.studentId ? 'bg-white/[0.02]' : ''}`}
+                            onClick={() => toggleStudentExpansion(r.studentId)}
+                        >
+                          <td className="px-6 py-5 text-gray-500">
+                            {expandedStudentId === r.studentId ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                          </td>
+                          <td className="px-6 py-5">
+                            <p className="text-white font-bold text-sm">{r.studentName}</p>
+                            <p className="text-gray-600 text-[11px] font-medium mt-0.5">{r.studentEmail}</p>
+                          </td>
+                          <td className="px-6 py-5 text-center">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest border ${r.submissionStatus === 'SUBMITTED' ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'}`}>
+                              {r.submissionStatus === 'SUBMITTED' ? 'Submitted' : 'In Progress'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-5 font-mono text-white font-bold">
+                            {r.totalScore?.toFixed(1)} <span className="text-gray-600 text-xs">/ {totalPossibleMarks}</span>
+                          </td>
+                          <td className="px-6 py-5 font-mono text-gray-300 font-bold">
+                            {r.overallAccuracy?.toFixed(1)}%
+                          </td>
+                          <td className="px-6 py-5">
+                            <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg border ${r.status === 'Pass' || r.status === 'Passed' ? 'bg-[#2df07b]/10 text-[#2df07b] border-[#2df07b]/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                        
+                        {/* Expanded Details Row */}
+                        {expandedStudentId === r.studentId && (
+                          <tr className="bg-black/20">
+                            <td colSpan="6" className="p-0">
+                                <div className="p-6 pl-16 border-l-2 border-[#2df07b]/30">
+                                    <h4 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-4">Question Breakdown</h4>
+                                    
+                                    {loadingDetails && !studentDetails[r.studentId] ? (
+                                        <div className="text-sm text-gray-500 flex items-center gap-2">
+                                            <div className="animate-spin h-3 w-3 border-b-2 border-[#2df07b] rounded-full"></div>
+                                            Loading details...
+                                        </div>
+                                    ) : !studentDetails[r.studentId] || studentDetails[r.studentId].length === 0 ? (
+                                        <div className="text-sm text-gray-600">No question details found.</div>
+                                    ) : (
+                                        <table className="w-full text-xs text-left">
+                                            <thead className="text-gray-600 border-b border-white/5">
+                                                <tr>
+                                                    <th className="pb-3 font-bold text-[10px] uppercase tracking-widest">Question</th>
+                                                    <th className="pb-3 font-bold text-[10px] uppercase tracking-widest">Score</th>
+                                                    <th className="pb-3 font-bold text-[10px] uppercase tracking-widest">Accuracy</th>
+                                                    <th className="pb-3 font-bold text-[10px] uppercase tracking-widest">Status</th>
+                                                    <th className="pb-3 font-bold text-[10px] uppercase tracking-widest">Submitted</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/[0.02]">
+                                                {studentDetails[r.studentId].map(detail => (
+                                                    <tr key={detail.submissionId} className="hover:bg-white/[0.01]">
+                                                        <td className="py-3 text-gray-300 font-medium">{detail.questionTitle}</td>
+                                                        <td className="py-3 font-mono text-white">{detail.score?.toFixed(1)}</td>
+                                                        <td className="py-3 font-mono text-gray-400">{detail.accuracy}%</td>
+                                                        <td className="py-3">
+                                                            <span className={detail.status === 'Pass' || detail.status === 'Passed' ? 'text-[#2df07b]' : 'text-rose-400'}>
+                                                                {detail.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-3 text-gray-500 font-mono">
+                                                            {new Date(detail.submissionTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            </td>
+                          </tr>
+                        )}
+                    </React.Fragment>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Right Column: Questions & Results */}
-        <div className="col-span-2 space-y-6">
-          
-          {/* Questions */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <BookOpen size={18} className="text-purple-400" />
-              <h2 className="text-lg font-semibold text-white">Questions Assortment</h2>
-            </div>
-            {questions.length === 0 ? (
-              <div className="glass-card p-6 text-center text-slate-500 text-sm">No questions added yet.</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Access Protocol & Question sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          {/* Access Protocol */}
+          <div className="bg-[#111111] border border-white/5 rounded-[40px] p-10 shadow-2xl space-y-8">
+             <div className="flex items-center gap-3">
+                <ExternalLink size={18} className="text-[#2df07b]" />
+                <h3 className="text-[12px] font-bold text-white uppercase tracking-widest">Access Link</h3>
+             </div>
+             <div className="p-8 bg-black rounded-3xl border border-white/5 flex flex-col items-center">
+                <div className="p-4 bg-white rounded-2xl shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+                   <QRCode 
+                      value={testLink}
+                      size={160}
+                      fgColor="#000000"
+                      level="H"
+                   />
+                </div>
+                <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mt-8 text-center leading-relaxed">Scan QR code to open test link</p>
+             </div>
+             <button 
+                onClick={copyTestLink}
+                className="w-full py-4 border border-white/10 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-[#2df07b] hover:bg-[#2df07b]/5 hover:border-[#2df07b]/30 transition-all flex items-center justify-center gap-2 group"
+             >
+                <Copy size={14} className="group-hover:scale-110 transition-transform" />
+                Copy Test Link
+             </button>
+          </div>
+
+          {/* Questions List */}
+          <div className="bg-[#111111] border border-white/5 rounded-[40px] p-10 shadow-2xl">
+             <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                   <BookOpen size={18} className="text-[#2df07b]" />
+                   <h3 className="text-[12px] font-bold text-white uppercase tracking-widest">Assigned Questions</h3>
+                </div>
+                <span className="bg-[#2df07b]/10 text-[#2df07b] text-[10px] font-bold px-3 py-1 rounded-full">{questions.length} Items</span>
+             </div>
+             <div className="space-y-4">
                 {questions.map((q, i) => (
-                  <div key={q.id} className="glass-card p-3 flex items-start gap-3">
-                    <span className="w-6 h-6 rounded-md bg-purple-600/20 flex items-center justify-center text-purple-300 text-xs font-bold shrink-0">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-medium text-sm truncate">{q.title}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-slate-400 text-xs">{q.marks} marks</span>
-                        <span className={`badge ${difficultyColor[q.difficulty] || 'badge-blue'} text-[10px] px-1.5 py-0`}>
-                          {q.difficulty}
-                        </span>
-                      </div>
-                    </div>
+                  <div key={q.questionId || q.id || i} className="group cursor-pointer p-6 bg-black/40 border border-white/5 rounded-3xl hover:border-[#2df07b]/30 transition-all">
+                     <div className="flex items-start gap-4">
+                        <span className="text-[10px] font-mono text-gray-700 font-bold mt-1">{String(i+1).padStart(2, '0')}</span>
+                        <div className="flex-1">
+                           <p className="text-[14px] font-bold text-white uppercase tracking-tight group-hover:text-[#2df07b] transition-colors">{q.title}</p>
+                           <div className="flex items-center gap-4 mt-2">
+                              <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{q.marks} Marks</span>
+                              <span className="w-1 h-1 rounded-full bg-gray-800"></span>
+                              <span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">{q.difficulty || 'Standard'}</span>
+                           </div>
+                        </div>
+                        <ChevronRight size={14} className="text-gray-700 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                     </div>
                   </div>
                 ))}
-              </div>
-            )}
+             </div>
           </div>
-
-          {/* Results Table */}
-          <div className="space-y-3 pt-4 border-t border-slate-700/50">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <UserCircle size={18} className="text-emerald-400" />
-                <h2 className="text-lg font-semibold text-white">Student Submissions</h2>
-                <span className="badge badge-purple ml-2">{processedResults.length}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <input 
-                  type="text"
-                  placeholder="Search students or status..."
-                  value={filterQuery}
-                  onChange={(e) => setFilterQuery(e.target.value)}
-                  className="bg-slate-800/80 border border-slate-700/50 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-purple-500 transition-colors w-56 placeholder:text-slate-500"
-                />
-                <button onClick={downloadResultsCSV} disabled={results.length === 0}
-                  className="btn-primary flex items-center gap-2 py-1.5 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20">
-                  <Download size={14} /> Export CSV
-                </button>
-              </div>
-            </div>
-
-            <div className="glass-card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-slate-400 uppercase bg-slate-800/40 border-b border-slate-700/50">
-                    <tr>
-                      <th className="px-4 py-3 font-medium w-10"></th>
-                      <SortHeader label="Student" sortKey="studentName" />
-                      <SortHeader label="Submission Status" sortKey="submissionStatus" align="center" />
-                      <SortHeader label="Total Score" sortKey="totalScore" />
-                      <SortHeader label="Overall Accuracy" sortKey="overallAccuracy" />
-                      <SortHeader label="Evaluation" sortKey="status" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {processedResults.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
-                          {results.length > 0 ? "No students match your search." : "No student submissions recorded yet."}
-                        </td>
-                      </tr>
-                    ) : (
-                      processedResults.map((r, idx) => (
-                        <React.Fragment key={r.studentId}>
-                            <tr 
-                                className={`border-b border-slate-700/30 hover:bg-slate-700/20 cursor-pointer transition-colors ${expandedStudentId === r.studentId ? 'bg-slate-700/10' : ''}`}
-                                onClick={() => toggleStudentExpansion(r.studentId)}
-                            >
-                              <td className="px-4 py-3 text-slate-400">
-                                {expandedStudentId === r.studentId ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                              </td>
-                              <td className="px-4 py-3">
-                                <p className="text-white font-medium truncate max-w-[150px]">{r.studentName}</p>
-                                <p className="text-slate-400 text-xs truncate max-w-[150px]">{r.studentEmail}</p>
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${r.submissionStatus === 'SUBMITTED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-                                  {r.submissionStatus === 'SUBMITTED' ? 'Submitted' : 'Appeared'}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 font-mono text-white">
-                                {r.totalScore?.toFixed(1)} <span className="text-slate-500 text-xs">/ {totalMarks}</span>
-                              </td>
-                              <td className="px-4 py-3 font-mono text-slate-300">
-                                {r.overallAccuracy?.toFixed(1)}%
-                              </td>
-                              <td className="px-4 py-3">
-                                <span className={`badge ${r.status === 'Pass' || r.status === 'Passed' ? 'badge-green' : 'badge-red'} text-xs`}>
-                                  {r.status}
-                                </span>
-                              </td>
-                            </tr>
-                            
-                            {/* Expanded Details Row */}
-                            {expandedStudentId === r.studentId && (
-                              <tr className="bg-slate-900/50 border-b border-slate-700/30">
-                                <td colSpan="5" className="p-0">
-                                    <div className="p-4 pl-12 border-l-2 border-purple-500/50">
-                                        <h4 className="text-xs font-semibold text-slate-400 uppercase mb-3">Question Breakdown</h4>
-                                        
-                                        {loadingDetails && !studentDetails[r.studentId] ? (
-                                            <div className="text-sm text-slate-400 flex items-center gap-2">
-                                                <div className="animate-spin h-3 w-3 border-b-2 border-purple-500 rounded-full"></div>
-                                                Loading details...
-                                            </div>
-                                        ) : !studentDetails[r.studentId] || studentDetails[r.studentId].length === 0 ? (
-                                            <div className="text-sm text-slate-500">No question details found.</div>
-                                        ) : (
-                                            <table className="w-full text-xs text-left">
-                                                <thead className="text-slate-500 border-b border-slate-700/50">
-                                                    <tr>
-                                                        <th className="pb-2 font-medium">Question</th>
-                                                        <th className="pb-2 font-medium">Score</th>
-                                                        <th className="pb-2 font-medium">Accuracy</th>
-                                                        <th className="pb-2 font-medium">Status</th>
-                                                        <th className="pb-2 font-medium">Submitted</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-800/50">
-                                                    {studentDetails[r.studentId].map(detail => (
-                                                        <tr key={detail.submissionId} className="hover:bg-slate-800/30">
-                                                            <td className="py-2 text-slate-300">{detail.questionTitle}</td>
-                                                            <td className="py-2 font-mono text-slate-300">{detail.score?.toFixed(1)}</td>
-                                                            <td className="py-2 font-mono text-slate-400">{detail.accuracy}%</td>
-                                                            <td className="py-2">
-                                                                <span className={detail.status === 'Pass' || detail.status === 'Passed' ? 'text-emerald-400' : 'text-rose-400'}>
-                                                                    {detail.status}
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-2 text-slate-500">
-                                                                {new Date(detail.submissionTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        )}
-                                    </div>
-                                </td>
-                              </tr>
-                            )}
-                        </React.Fragment>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </div>
-
-      <div className="pt-4 border-t border-slate-700/50">
-        <Link to="/teacher" className="btn-secondary text-sm">← Back to Dashboard</Link>
       </div>
     </div>
   );

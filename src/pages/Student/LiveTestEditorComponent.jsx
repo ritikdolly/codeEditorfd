@@ -42,6 +42,26 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
         fetchDraft();
     }, [testId, questionId]);
 
+    // Define custom theme to match the new UI
+    const handleBeforeMount = (monaco) => {
+        monaco.editor.defineTheme('codearena-dark', {
+            base: 'vs-dark',
+            inherit: true,
+            rules: [],
+            colors: {
+                'editor.background': '#09090b', // Seamless background integration
+                'editor.lineHighlightBackground': '#ffffff08',
+                'editorLineNumber.foreground': '#4b5563',
+                'editorCursor.foreground': '#2df07b', // Neon green cursor
+                'editor.selectionBackground': '#2df07b30', // Neon green selection
+                'editor.inactiveSelectionBackground': '#2df07b15',
+                'scrollbarSlider.background': '#ffffff10',
+                'scrollbarSlider.hoverBackground': '#ffffff20',
+                'scrollbarSlider.activeBackground': '#2df07b50',
+            }
+        });
+    };
+
     const handleEditorMount = (editor, monaco) => {
         editorRef.current = editor;
         monacoRef.current = monaco;
@@ -128,15 +148,20 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
             defaultLanguage="java"
             value={code}
             onChange={(val) => onChange(val || "")}
+            beforeMount={handleBeforeMount}
             onMount={handleEditorMount}
-            theme="vs-dark"
+            theme="codearena-dark"
             options={{
                 fontSize: 14,
+                fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,
                 lineNumbersMinChars: 3,
-                padding: { top: 12 },
+                padding: { top: 16, bottom: 16 },
                 formatOnPaste: true,
+                smoothScrolling: true,
+                cursorBlinking: "smooth",
+                cursorSmoothCaretAnimation: "on"
             }}
         />
     );
