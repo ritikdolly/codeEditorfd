@@ -44,7 +44,7 @@ export const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
       {/* Background gradient */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent/10 blur-[120px] rounded-full pointer-events-none opacity-40"></div>
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -52,8 +52,8 @@ export const ResetPassword = () => {
 
         {/* Icon header */}
         <div className="flex flex-col items-center mb-8">
-          <div className="p-4 rounded-2xl bg-purple-600/20 mb-4">
-            <Lock size={28} className="text-purple-400" />
+          <div className="p-4 rounded-2xl bg-accent/20 mb-4">
+            <Lock size={28} className="text-accent" />
           </div>
           <h1 className="text-2xl font-bold text-white">
             {step === 'done' ? 'Password Reset!' : 'Reset Password'}
@@ -74,11 +74,11 @@ export const ResetPassword = () => {
                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600/60 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600/60 rounded-xl text-white focus:outline-none focus:border-accent transition-colors" />
               </div>
             </div>
             <button type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors disabled:opacity-60">
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent hover:bg-accent-dark text-black font-medium transition-colors disabled:opacity-60">
               {loading ? 'Sending…' : <><ArrowRight size={16} />Send Reset Email</>}
             </button>
             <button type="button" onClick={() => navigate('/login')}
@@ -100,7 +100,7 @@ export const ResetPassword = () => {
                 <KeyRound size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input required value={token} onChange={e => setToken(e.target.value)}
                   placeholder="Paste token from email"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600/60 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-purple-500 transition-colors" />
+                  className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600/60 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-accent transition-colors" />
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
@@ -118,10 +118,10 @@ export const ResetPassword = () => {
               <label className="text-sm text-slate-400">Confirm Password</label>
               <input type="password" required value={confirm} onChange={e => setConfirm(e.target.value)}
                 placeholder="Re-enter password"
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-600/60 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                className="w-full px-4 py-3 bg-slate-800 border border-slate-600/60 rounded-xl text-white focus:outline-none focus:border-accent transition-colors" />
             </div>
             <button type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors disabled:opacity-60">
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent hover:bg-accent-dark text-black font-medium transition-colors disabled:opacity-60">
               {loading ? 'Resetting…' : 'Reset Password'}
             </button>
           </form>
@@ -136,7 +136,7 @@ export const ResetPassword = () => {
             </motion.div>
             <p className="text-slate-300 text-sm">You can now log in with your new password.</p>
             <button onClick={() => navigate('/login')}
-              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors">
+              className="w-full py-3 rounded-xl bg-accent hover:bg-accent-dark text-black font-medium transition-colors">
               Go to Login
             </button>
           </div>
