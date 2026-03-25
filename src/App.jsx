@@ -19,7 +19,7 @@ import { CreateQuestion } from './pages/Teacher/CreateQuestion';
 import { QuestionsList } from './pages/Teacher/QuestionsList';
 import { CreateTest } from './pages/Teacher/CreateTest';
 import { TestDetail } from './pages/Teacher/TestDetail';
-import { TeacherMonitor } from './pages/Teacher/TeacherMonitor';
+
 import { TeacherResults } from './pages/Teacher/TeacherResults';
 
 // Student Pages
@@ -74,7 +74,7 @@ function App() {
           <Route path="questions/edit/:id" element={<CreateQuestion />} />
           <Route path="tests/create" element={<CreateTest />} />
           <Route path="tests/:id" element={<TestDetail />} />
-          <Route path="monitor/:id" element={<TeacherMonitor />} />
+
           <Route path="results" element={<TeacherResults />} />
         </Route>
 

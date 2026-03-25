@@ -23,10 +23,8 @@ export function StudentDashboard() {
     // Attempt to fetch tests if the endpoint exists, otherwise fallback to empty
     const fetchTests = async () => {
       try {
-        // Many students might not have a direct list endpoint yet, 
-        // but we'll try to use a common one or a mockup for the 'feature'
-        const data = await teacherService.getTests().catch(() => []);
-        setTests(data.slice(0, 3)); // Only show top 3 for dashboard
+        // Students should not call teacherService. Removing this to avoid 403 errors.
+        setTests([]); 
       } catch (e) {
         console.log("Could not fetch test history for student");
       } finally {
@@ -74,7 +72,7 @@ export function StudentDashboard() {
         </div>
 
         <div className="flex items-center gap-6">
-           <div className="flex flex-col text-right hidden sm:flex">
+           <div className="hidden sm:flex flex-col text-right">
              <p className="text-sm font-bold text-white leading-none tracking-tight">{user?.name}</p>
              <span className="text-[10px] font-bold text-accent uppercase tracking-widest mt-1 opacity-80">Student Account</span>
            </div>
@@ -181,6 +179,38 @@ export function StudentDashboard() {
                       </div>
                     ))
                   )}
+               </div>
+             </div>
+
+             {/* Keyboard Mastery / Shortcuts Guide */}
+            <div className="w-full bg-accent/5 rounded-[40px] p-10 border border-accent/10 relative overflow-hidden group/shortcuts mt-8">
+               <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/shortcuts:opacity-[0.08] transition-opacity pointer-events-none">
+                  <Zap size={160} className="text-accent" />
+               </div>
+               
+               <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-8">
+                     <div className="p-2 rounded-xl bg-accent/10 border border-accent/20">
+                        <Code2 size={20} className="text-accent" />
+                     </div>
+                     <h2 className="text-xl font-bold text-white uppercase tracking-tight">Keyboard Mastery</h2>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+                     {[
+                        { k: "Ctrl + Enter", d: "Run Solution" },
+                        { k: "Ctrl + ⇧ + Enter", d: "Submit Question" },
+                        { k: "⌥ + ⇧ + F", d: "Format Code" },
+                        { k: "Alt + ← / →", d: "Next/Prev Question" },
+                        { k: "Alt + R", d: "Reset Template" }
+                     ].map((s, i) => (
+                        <div key={i} className="flex items-center justify-between border-b border-white/5 pb-3">
+                           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{s.d}</span>
+                           <kbd className="px-2.5 py-1 rounded-lg bg-black border border-white/10 text-[10px] font-mono font-black text-accent tracking-widest shadow-lg">{s.k}</kbd>
+                        </div>
+                     ))}
+                  </div>
+                  <p className="mt-10 text-[9px] font-bold text-gray-600 uppercase tracking-[0.3em] text-center italic">Use these shortcuts to dominate the leaderboard.</p>
                </div>
             </div>
         </div>

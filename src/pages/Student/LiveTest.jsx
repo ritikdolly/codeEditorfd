@@ -74,6 +74,7 @@ export function LiveTest() {
   const [warningCountdown, setWarningCountdown] = useState(5);
   const [hasStartedFullscreen, setHasStartedFullscreen] = useState(false);
   const handleFinishTestRef = useRef(null);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setCurrentTime(Date.now()), 1000);
@@ -138,7 +139,7 @@ export function LiveTest() {
   }, [id, test, isBeforeStart, questions.length]);
 
   useEffect(() => {
-    if (test && !isBeforeStart && !isAfterEnd && !isAttemptInProgress && !submitted) {
+    if (test && !isBeforeStart && !isAfterEnd && !isAttemptInProgress && !submitted && hasStartedFullscreen) {
        studentService
         .startAttempt(id)
         .then(() => setIsAttemptInProgress(true))
@@ -148,10 +149,12 @@ export function LiveTest() {
             toast.error(err.response?.data?.error || "Test ALREADY submitted and evaluated!");
             sessionStorage.removeItem(`test_code_${id}`);
             sessionStorage.removeItem(`test_idx_${id}`);
+            // Exit fullscreen if already entered but attempt was blocked
+            if (document.fullscreenElement) document.exitFullscreen().catch(console.error);
           }
         });
     }
-  }, [test, isBeforeStart, isAfterEnd, isAttemptInProgress, submitted, id]);
+  }, [test, isBeforeStart, isAfterEnd, isAttemptInProgress, submitted, id, hasStartedFullscreen]);
 
   useEffect(() => {
     if (isAfterEnd && test && isAttemptInProgress && !submitted) {
@@ -172,14 +175,16 @@ export function LiveTest() {
     if (!test || !user || !isAttemptInProgress) return;
 
     const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8081/ws-monitor';
-    const client = Stomp.over(() => new SockJS(wsUrl));
-    client.debug = () => {}; 
+    const socket = new SockJS(wsUrl);
+    const client = Stomp.over(socket);
+    client.debug = (str) => {}; // Re-enabling as empty function to satisfy compatibility
+    client.onDebug = (str) => {}; // Version 7 uses onDebug properties in some scenarios
 
     const sendStatus = (status) => {
       if (client.connected) {
         client.send(`/app/test/${id}/status`, {}, JSON.stringify({
-          studentId: user.id,
-          studentName: user.name,
+          studentId: user?.id,
+          studentName: user?.name,
           testId: id,
           status: status,
           questionsSolved: Object.keys(resultsByQuestion).length,
@@ -190,11 +195,9 @@ export function LiveTest() {
 
     client.connect({}, () => {
       sendStatus('RECONNECT');
+    }, (error) => {
+      console.log('STOMP error:', error);
     });
-
-    if (Object.keys(resultsByQuestion).length > 0) {
-      sendStatus('PROGRESS');
-    }
 
     return () => {
       if (client.connected) {
@@ -304,7 +307,8 @@ export function LiveTest() {
         const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8081/ws-monitor';
         const socket = new SockJS(wsUrl);
         const client = Stomp.over(socket);
-        client.debug = null;
+        client.debug = (str) => {};
+        client.onDebug = (str) => {};
         client.connect({}, () => {
           client.send(`/app/test/${id}/status`, {}, JSON.stringify({
             studentId: user?.id,
@@ -339,11 +343,20 @@ export function LiveTest() {
     if (!test || !isAttemptInProgress || submitted || isAfterEnd || !hasStartedFullscreen) return;
 
     const handleViolation = () => {
-      if (document.getElementById('violation-warning-overlay')) return;
-      if (submitted) return;
+      if (submitted || isAfterEnd) return;
       
-      setIsWarningActive(true);
-      setWarningCountdown(5);
+      setFullscreenViolations(prev => {
+        const newViolations = prev + 1;
+        if (newViolations >= 3) {
+          toast.error("Test auto-submitted due to 3 rule violations.");
+          if (handleFinishTestRef.current) handleFinishTestRef.current(true);
+          return newViolations;
+        }
+        
+        setIsWarningActive(true);
+        setWarningCountdown(5);
+        return newViolations;
+      });
     };
 
     const handleVisibilityChange = () => {
@@ -351,7 +364,7 @@ export function LiveTest() {
     };
 
     const handleFullscreenChange = () => {
-      if (!document.fullscreenElement) handleViolation();
+      if (!document.fullscreenElement && hasStartedFullscreen) handleViolation();
     };
 
     const handleBlur = () => {
@@ -361,15 +374,54 @@ export function LiveTest() {
     // Disable right-click
     const handleContextMenu = (e) => e.preventDefault();
     
-    // Disable shortcuts
+    // Disable shortcuts & Add helpful ones
     const handleKeyDown = (e) => {
-      // Ctrl+C, Ctrl+V, F12, Ctrl+Shift+I
+      // 1. Anti-cheat (Blocked)
       if (
         (e.ctrlKey && ['c', 'v'].includes(e.key.toLowerCase())) ||
         e.key === 'F12' ||
         (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i')
       ) {
         e.preventDefault();
+        return;
+      }
+
+      // 2. Helpful Shortcuts (Active)
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleSubmitQuestion();
+        } else {
+          handleRun();
+        }
+        return;
+      }
+
+      if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        setActiveIdx(prev => Math.min(questions.length - 1, prev + 1));
+        return;
+      }
+
+      if (e.altKey && e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setActiveIdx(prev => Math.max(0, prev - 1));
+        return;
+      }
+
+      if (e.altKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        handleResetCode();
+        return;
+      }
+
+      // Format Code (Shift + Alt + F)
+      if (e.shiftKey && e.altKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        if (editorRef.current) {
+          editorRef.current.formatCode();
+        }
+        return;
       }
     };
 
@@ -386,7 +438,7 @@ export function LiveTest() {
       document.removeEventListener("contextmenu", handleContextMenu);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [test, isAttemptInProgress, submitted, isAfterEnd, hasStartedFullscreen]);
+  }, [test, isAttemptInProgress, submitted, isAfterEnd, hasStartedFullscreen, questions.length, handleRun, handleSubmitQuestion, handleResetCode]);
 
   useEffect(() => {
     if (!isWarningActive || submitted) return;
@@ -452,6 +504,56 @@ export function LiveTest() {
           >
             Back to Dashboard
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Proctoring Entrance Screen ---
+  if (test && !isBeforeStart && !isAfterEnd && !hasStartedFullscreen && !submitted) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#09090b] relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent/5 rounded-full blur-[120px] pointer-events-none"></div>
+        
+        <div className="bg-[#111111] p-12 text-center max-w-lg w-full border border-white/5 rounded-[48px] shadow-2xl relative z-10">
+          <div className="w-24 h-24 rounded-4xl bg-accent/10 flex items-center justify-center mx-auto mb-10 border border-accent/20">
+            <Monitor className="w-12 h-12 text-accent" />
+          </div>
+          
+          <h1 className="text-4xl font-black text-white mb-6 uppercase tracking-tight font-outfit leading-none">Security Protocol</h1>
+          <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-10 italic">Secure Examination environment ready</p>
+          
+          <div className="space-y-4 mb-12 text-left bg-black/40 p-8 rounded-3xl border border-white/5">
+            <div className="flex items-start gap-4">
+               <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/20 text-emerald-400 font-bold text-[10px]">1</div>
+               <p className="text-xs text-slate-400 font-medium leading-relaxed pt-1">Test will be conducted in <span className="text-white font-bold italic">Full-screen Mode</span> only.</p>
+            </div>
+            <div className="flex items-start gap-4">
+               <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20 text-amber-400 font-bold text-[10px]">2</div>
+               <p className="text-xs text-slate-400 font-medium leading-relaxed pt-1">Tab switching or window minimization is <span className="text-rose-400 font-bold italic">Prohibited</span>.</p>
+            </div>
+            <div className="flex items-start gap-4">
+               <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20 text-blue-400 font-bold text-[10px]">3</div>
+               <p className="text-xs text-slate-400 font-medium leading-relaxed pt-1">Exiting secure mode more than <span className="text-white font-bold italic text-sm">3 times</span> results in <span className="text-rose-500 font-black italic">Auto-submission</span>.</p>
+            </div>
+          </div>
+          
+          <button 
+            onClick={async () => {
+              try {
+                await document.documentElement.requestFullscreen();
+                setHasStartedFullscreen(true);
+              } catch (err) {
+                toast.error("Full-screen permission is required to start the test.");
+              }
+            }}
+            className="w-full py-5 bg-accent hover:bg-accent-dark text-black rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-accent/20 flex items-center justify-center gap-3 group"
+          >
+            <span>Enter Secure Environment</span>
+            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+          
+          <p className="mt-8 text-[9px] font-bold text-slate-700 uppercase tracking-[0.3em] animate-pulse italic">Awaiting User authorization gesture...</p>
         </div>
       </div>
     );
@@ -669,6 +771,7 @@ export function LiveTest() {
        </div>
        <div className="flex-1 min-h-0 relative">
           <LiveTestEditorComponent
+            ref={editorRef}
             key={activeQuestion?.id}
             testId={id}
             questionId={activeQuestion?.id}
@@ -676,6 +779,11 @@ export function LiveTest() {
             onChange={(val) => setCodeMap((prev) => ({ ...prev, [activeQuestion?.id]: val }))}
             setCodeMap={setCodeMap}
             isAttemptInProgress={isAttemptInProgress}
+            onRun={handleRun}
+            onSubmit={handleSubmitQuestion}
+            onReset={handleResetCode}
+            onPrev={() => setActiveIdx(prev => Math.max(0, prev - 1))}
+            onNext={() => setActiveIdx(prev => Math.min(questions.length - 1, prev + 1))}
           />
        </div>
     </div>
@@ -799,7 +907,25 @@ export function LiveTest() {
            </div>
         </div>
 
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-8 text-white">
+           {/* Shortcuts Legend (Desktop only) */}
+           {!isMobile && (
+             <div className="flex items-center gap-6 pr-6 border-r border-white/5">
+                {[
+                  { k: "Ctrl + Enter", l: "Run" },
+                  { k: "Ctrl + ⇧ + Enter", l: "Submit" },
+                  { k: "Alt + ← / →", l: "Switch Question" },
+                  { k: "⌥ + ⇧ + F", l: "Format" },
+                  { k: "Alt + R", l: "Reset" },
+                ].map((s, i) => (
+                  <div key={i} className="flex flex-col gap-1 items-center group cursor-default">
+                     <span className="text-[7px] font-black text-slate-600 uppercase tracking-widest group-hover:text-accent transition-colors">{s.l}</span>
+                     <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[8px] font-mono font-black text-slate-400 group-hover:border-accent/40 group-hover:text-white transition-all">{s.k}</kbd>
+                  </div>
+                ))}
+             </div>
+           )}
+
            {countdown && (
              <div className={`flex items-center gap-4 px-5 py-2.5 rounded-2xl border transition-all ${countdown.includes("s") && !countdown.includes("m") && !countdown.includes("h") ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' : 'bg-white/5 border-white/10 text-white shadow-xl'}`}>
                 <Clock size={16} className={countdown.includes("s") && !countdown.includes("m") ? 'text-rose-500' : 'text-accent'} />
@@ -861,6 +987,47 @@ export function LiveTest() {
           </PanelGroup>
         )}
       </div>
+
+      {/* Proctoring Warning Overlay */}
+      {isWarningActive && !submitted && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fade-in">
+          <div className="max-w-md w-full mx-4 p-12 bg-[#111111] border-2 border-rose-500/30 rounded-[40px] text-center shadow-[0_0_50px_rgba(244,63,94,0.1)] relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-rose-500/20 shadow-[0_0_20px_rgba(244,63,94,0.5)]">
+               <div className="h-full bg-rose-500 transition-all duration-1000 ease-linear" style={{ width: `${(warningCountdown / 5) * 100}%` }}></div>
+            </div>
+            
+            <div className="w-24 h-24 rounded-[32px] bg-rose-500/10 flex items-center justify-center mx-auto mb-10 border border-rose-500/20 animate-bounce">
+              <XCircle className="w-12 h-12 text-rose-500" />
+            </div>
+            
+            <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tight">Security Violation</h2>
+            <p className="text-rose-400 font-black text-sm uppercase tracking-widest mb-2">Strike {fullscreenViolations} / 3</p>
+            
+            <div className="bg-rose-500/5 rounded-3xl p-8 border border-rose-500/10 mb-10">
+               <p className="text-slate-300 text-sm font-medium leading-relaxed mb-6 italic">Warning: Do not leave the test screen. Multiple violations will result in automatic submission.</p>
+               <div className="flex flex-col items-center">
+                  <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-2">Auto-submission In</p>
+                  <p className="text-6xl font-black text-white font-mono tracking-tighter">{warningCountdown}s</p>
+               </div>
+            </div>
+            
+            <button
+              onClick={async () => {
+                try {
+                  await document.documentElement.requestFullscreen();
+                  setIsWarningActive(false);
+                } catch (err) {
+                  toast.error("Enter full-screen to resume test");
+                }
+              }}
+              className="w-full py-5 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-xl shadow-rose-500/20 flex items-center justify-center gap-3 animate-pulse"
+            >
+              <span>Return to Full-screen</span>
+              <RotateCcw size={20} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 

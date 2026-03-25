@@ -1,19 +1,28 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import Editor from "@monaco-editor/react";
 import { studentService } from "../../services/api";
 
 const DEFAULT_CODE = `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your solution here\n        \n    }\n}`;
 
-const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMap, isAttemptInProgress }) => {
+const LiveTestEditorComponent = forwardRef(({ testId, questionId, code, onChange, setCodeMap, isAttemptInProgress, onRun, onSubmit, onReset, onPrev, onNext }, ref) => {
     const isFirstLoad = useRef(true);
     const [isFetchingLocal, setIsFetchingLocal] = useState(true);
 
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
 
+    useImperativeHandle(ref, () => ({
+        formatCode: () => {
+            if (editorRef.current) {
+                editorRef.current.getAction('editor.action.formatDocument').run();
+            }
+        }
+    }));
+
     // Fetch initial draft
     useEffect(() => {
         const fetchDraft = async () => {
+            if (!questionId || questionId === 'undefined') return;
             if (!code || code === DEFAULT_CODE || code === "") {
                 try {
                     const questionRes = await studentService.getTestQuestions(testId);
@@ -120,6 +129,35 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
                 // but this is a secondary safeguard.
             }
         });
+        // Add Keyboard Commands
+        if (onRun) {
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+                onRun();
+            });
+        }
+        if (onSubmit) {
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => {
+                onSubmit();
+            });
+        }
+        if (onReset) {
+            editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyR, () => {
+                onReset();
+            });
+        }
+        if (onPrev) {
+            editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.LeftArrow, () => {
+                onPrev();
+            });
+        }
+        if (onNext) {
+            editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.RightArrow, () => {
+                onNext();
+            });
+        }
+
+        // Format is already built-in to Monaco (Shift + Alt + F), 
+        // but we can ensure it's mapped correctly if needed.
     };
 
     // Autosave periodic draft
@@ -165,6 +203,6 @@ const LiveTestEditorComponent = ({ testId, questionId, code, onChange, setCodeMa
             }}
         />
     );
-};
+});
 
 export default LiveTestEditorComponent;
