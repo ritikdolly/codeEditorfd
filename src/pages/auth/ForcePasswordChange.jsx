@@ -95,7 +95,7 @@ export function ForcePasswordChange() {
       <div className="w-full md:w-1/2 bg-white p-8 md:p-16 lg:p-24 flex flex-col justify-center">
         <div className="flex items-center gap-2 mb-16">
           <Code2 size={24} className="text-[#1a1b1e]" />
-          <span className="text-xl font-bold text-[#1a1b1e] tracking-tight">CodeArena<span className="text-[#4C8CE4]">_</span></span>
+          <span className="text-xl font-bold text-[#1a1b1e] tracking-tight">CodeArena<span className="text-accent">_</span></span>
         </div>
         <div>
           <h1 className="text-4xl md:text-5xl font-bold text-[#1a1b1e] leading-tight mb-6">
@@ -125,7 +125,7 @@ export function ForcePasswordChange() {
                   type="button"
                   onClick={handleRequestOtp}
                   disabled={loading}
-                  className="w-full bg-[#4C8CE4] hover:bg-[#3b7bd1] text-white font-semibold py-3 px-6 rounded flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="w-full bg-accent hover:bg-accent-dark text-black font-semibold py-3 px-6 rounded flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : null}
                   Send Verification OTP
@@ -155,7 +155,7 @@ export function ForcePasswordChange() {
                     type="button"
                     onClick={handleRequestOtp}
                     disabled={timer > 0 || loading}
-                    className="text-[#4C8CE4] hover:underline font-bold disabled:text-gray-400"
+                    className="text-accent hover:underline font-bold disabled:text-gray-400"
                   >
                     {timer > 0 ? `Resend in ${timer}s` : "Resend OTP"}
                   </button>
@@ -166,7 +166,7 @@ export function ForcePasswordChange() {
                 <label className="block text-sm font-medium text-[#39424e] mb-2">Temporary Password</label>
                 <div className="relative">
                   <input
-                    className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4] pr-10"
+                    className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent pr-10"
                     type={showOldPassword ? 'text' : 'password'}
                     placeholder="Current temporary password"
                     value={oldPassword}
@@ -188,7 +188,7 @@ export function ForcePasswordChange() {
                 <div className="grid grid-cols-1 gap-4">
                   <div className="relative">
                     <input
-                      className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4] pr-10"
+                      className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent pr-10"
                       type={showNewPassword ? 'text' : 'password'}
                       placeholder="New password (min 8 chars)"
                       value={newPassword}
@@ -205,7 +205,7 @@ export function ForcePasswordChange() {
                     </button>
                   </div>
                   <input
-                    className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-[#4C8CE4] focus:ring-1 focus:ring-[#4C8CE4]"
+                    className="w-full bg-white border border-[#c2c7d0] rounded text-[#39424e] px-4 py-2.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                     type="password"
                     placeholder="Confirm new password"
                     value={confirmPassword}
@@ -219,7 +219,7 @@ export function ForcePasswordChange() {
                 <button
                   type="submit"
                   disabled={loading || otp.length < 6 || newPassword.length < 8}
-                  className="w-full bg-[#4C8CE4] hover:bg-[#3b7bd1] text-white font-semibold py-3 px-6 rounded flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 transition-all"
+                  className="w-full bg-accent hover:bg-accent-dark text-white font-semibold py-3 px-6 rounded flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 transition-all"
                 >
                   {loading ? <Loader2 size={18} className="animate-spin" /> : 'Complete Secure Reset'}
                 </button>

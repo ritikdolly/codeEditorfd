@@ -118,7 +118,7 @@ export function CreateQuestion() {
   if (fetching) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center animate-pulse gap-4">
-        <Loader2 className="w-10 h-10 text-[#2df07b] animate-spin" />
+        <Loader2 className="w-10 h-10 text-accent animate-spin" />
         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
           Accessing Neural Records...
         </span>
@@ -143,7 +143,7 @@ export function CreateQuestion() {
               />
             </button>
             <div>
-              <div className="flex items-center gap-2 mb-2 text-[#2df07b]">
+              <div className="flex items-center gap-2 mb-2 text-accent">
                 <Database size={14} />
                 <span className="text-[11px] font-bold uppercase tracking-[0.2em]">
                   Neural Bank Specification
@@ -159,9 +159,9 @@ export function CreateQuestion() {
         <form onSubmit={handleSubmit} className="space-y-12">
           {/* Section 1: Core Problem Info */}
           <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
-            <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <div className="px-8 py-5 border-b border-white/5 bg-white/2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Info size={18} className="text-[#2df07b]" />
+                <Info size={18} className="text-accent" />
                 <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">
                   Problem Definition
                 </h2>
@@ -178,7 +178,7 @@ export function CreateQuestion() {
                     Vector Designation (Title) *
                   </label>
                   <input
-                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] transition-all placeholder:text-gray-700 font-bold shadow-xl"
+                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent transition-all placeholder:text-gray-700 font-bold shadow-xl"
                     required
                     value={form.title}
                     onChange={(e) =>
@@ -193,7 +193,7 @@ export function CreateQuestion() {
                     Contextual Description *
                   </label>
                   <textarea
-                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] transition-all placeholder:text-gray-700 min-h-[160px] leading-relaxed font-medium shadow-xl custom-scrollbar"
+                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent transition-all placeholder:text-gray-700 min-h-40 leading-relaxed font-medium shadow-xl custom-scrollbar"
                     required
                     value={form.description}
                     onChange={(e) =>
@@ -210,7 +210,7 @@ export function CreateQuestion() {
                     Intensity Level
                   </label>
                   <select
-                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold uppercase tracking-widest appearance-none cursor-pointer shadow-xl"
+                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent font-bold uppercase tracking-widest appearance-none cursor-pointer shadow-xl"
                     value={form.difficulty}
                     onChange={(e) =>
                       setForm({ ...form, difficulty: e.target.value })
@@ -226,7 +226,7 @@ export function CreateQuestion() {
                     Weightage (Marks)
                   </label>
                   <input
-                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold shadow-xl"
+                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent font-bold shadow-xl"
                     type="number"
                     min="1"
                     value={form.marks}
@@ -240,7 +240,7 @@ export function CreateQuestion() {
                     Temporal Optimization
                   </label>
                   <input
-                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold shadow-xl"
+                    className="w-full bg-[#1a1a1a] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent font-bold shadow-xl"
                     placeholder="e.g. O(log n)"
                     value={form.expectedTimeComplexity}
                     onChange={(e) =>
@@ -260,7 +260,7 @@ export function CreateQuestion() {
                     Input Schema
                   </label>
                   <textarea
-                    className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-medium min-h-[100px] shadow-xl custom-scrollbar"
+                    className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent font-medium min-h-25 shadow-xl custom-scrollbar"
                     placeholder="Detailed input specifications..."
                     value={form.inputFormat}
                     onChange={(e) =>
@@ -273,7 +273,7 @@ export function CreateQuestion() {
                     Output Schema
                   </label>
                   <textarea
-                    className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-medium min-h-[100px] shadow-xl custom-scrollbar"
+                    className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent font-medium min-h-25 shadow-xl custom-scrollbar"
                     placeholder="Detailed output specifications..."
                     value={form.outputFormat}
                     onChange={(e) =>
@@ -288,7 +288,7 @@ export function CreateQuestion() {
                   Logical Constraints
                 </label>
                 <textarea
-                  className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-[#2df07b] font-bold placeholder:font-medium shadow-xl custom-scrollbar"
+                  className="w-full bg-[#161616] border border-white/5 rounded-xl text-white px-5 py-3.5 focus:outline-none focus:border-accent font-bold placeholder:font-medium shadow-xl custom-scrollbar"
                   placeholder="e.g. -10^9 <= n <= 10^9"
                   value={form.constraints}
                   onChange={(e) =>
@@ -301,7 +301,7 @@ export function CreateQuestion() {
               {useAuthStore.getState().user?.role === "TEACHER" && (
                 <div className="pt-10 border-t border-white/5 space-y-6">
                   <div className="flex items-center gap-2">
-                    <Shield size={14} className="text-[#2df07b]" />
+                    <Shield size={14} className="text-accent" />
                     <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
                       Visibility Protocol
                     </label>
@@ -314,12 +314,12 @@ export function CreateQuestion() {
                       }
                       className={`flex items-center gap-4 p-6 rounded-2xl border transition-all ${
                         form.visibility === "PRIVATE"
-                          ? "bg-[#2df07b]/10 border-[#2df07b] shadow-[0_0_20px_rgba(45,240,123,0.1)]"
+                          ? "bg-accent/10 border-accent shadow-[0_0_20px_rgba(45,240,123,0.1)]"
                           : "bg-black/20 border-white/5 text-gray-500 hover:border-white/10"
                       }`}
                     >
                       <div
-                        className={`p-3 rounded-xl ${form.visibility === "PRIVATE" ? "bg-[#2df07b] text-black" : "bg-white/5"}`}
+                        className={`p-3 rounded-xl ${form.visibility === "PRIVATE" ? "bg-accent text-black" : "bg-white/5"}`}
                       >
                         <EyeOff size={20} />
                       </div>
@@ -340,12 +340,12 @@ export function CreateQuestion() {
                       onClick={() => setForm({ ...form, visibility: "GLOBAL" })}
                       className={`flex items-center gap-4 p-6 rounded-2xl border transition-all ${
                         form.visibility === "GLOBAL"
-                          ? "bg-[#2df07b]/10 border-[#2df07b] shadow-[0_0_20px_rgba(45,240,123,0.1)]"
+                          ? "bg-accent/10 border-accent shadow-[0_0_20px_rgba(45,240,123,0.1)]"
                           : "bg-black/20 border-white/5 text-gray-500 hover:border-white/10"
                       }`}
                     >
                       <div
-                        className={`p-3 rounded-xl ${form.visibility === "GLOBAL" ? "bg-[#2df07b] text-black" : "bg-white/5"}`}
+                        className={`p-3 rounded-xl ${form.visibility === "GLOBAL" ? "bg-accent text-black" : "bg-white/5"}`}
                       >
                         <Globe size={20} />
                       </div>
@@ -368,9 +368,9 @@ export function CreateQuestion() {
 
           {/* Section 2: Code Templates */}
           <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
-            <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <div className="px-8 py-5 border-b border-white/5 bg-white/2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Terminal size={18} className="text-[#2df07b]" />
+                <Terminal size={18} className="text-accent" />
                 <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">
                   Compiler Skeleton
                 </h2>
@@ -387,7 +387,7 @@ export function CreateQuestion() {
                 </label>
                 <div className="rounded-xl overflow-hidden border border-white/5 shadow-2xl">
                   <textarea
-                    className="w-full bg-[#050505] text-[#2df07b] px-6 py-6 focus:outline-none font-mono text-[14px] leading-relaxed min-h-[220px] custom-scrollbar"
+                    className="w-full bg-[#050505] text-accent px-6 py-6 focus:outline-none font-mono text-[14px] leading-relaxed min-h-[220px] custom-scrollbar"
                     placeholder="public class Solution { \n  /* START_EDITABLE */ \n  /* END_EDITABLE */ \n }"
                     value={form.templateCode}
                     onChange={(e) =>
@@ -430,9 +430,9 @@ export function CreateQuestion() {
 
           {/* Section 3: Validation Engine */}
           <div className="bg-[#111111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden group">
-            <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+            <div className="px-8 py-5 border-b border-white/5 bg-white/2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Shield size={18} className="text-[#2df07b]" />
+                <Shield size={18} className="text-accent" />
                 <h2 className="text-[12px] font-bold text-white uppercase tracking-widest">
                   Verification Clusters
                 </h2>
@@ -440,7 +440,7 @@ export function CreateQuestion() {
               <button
                 type="button"
                 onClick={addTestCase}
-                className="text-[10px] font-bold text-black bg-[#2df07b] px-4 py-2 rounded-lg hover:bg-[#25c464] transition-all flex items-center gap-2 shadow-sm uppercase tracking-widest active:scale-95"
+                className="text-[10px] font-bold text-black bg-accent px-4 py-2 rounded-lg hover:bg-accent-dark transition-all flex items-center gap-2 shadow-sm uppercase tracking-widest active:scale-95"
               >
                 <PlusCircle size={14} /> Link Scenario
               </button>
@@ -450,11 +450,11 @@ export function CreateQuestion() {
               {testCases.map((tc, i) => (
                 <div
                   key={i}
-                  className="group/cluster p-8 bg-white/[0.01] rounded-2xl border border-white/5 flex flex-col gap-8 relative hover:border-white/10 transition-colors shadow-2xl"
+                  className="group/cluster p-8 bg-white/1 rounded-2xl border border-white/5 flex flex-col gap-8 relative hover:border-white/10 transition-colors shadow-2xl"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <span className="w-8 h-8 rounded-lg bg-[#2df07b]/10 text-[#2df07b] text-[12px] font-bold flex items-center justify-center border border-[#2df07b]/20">
+                      <span className="w-8 h-8 rounded-lg bg-accent/10 text-accent text-[12px] font-bold flex items-center justify-center border border-accent/20">
                         {i + 1}
                       </span>
                       <h3 className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">
@@ -472,7 +472,7 @@ export function CreateQuestion() {
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-white/5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#2df07b]"></div>
+                          <div className="w-11 h-6 bg-white/5 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
                         </div>
                         <span className="text-[10px] font-bold text-gray-500 group-hover/toggle:text-gray-300 transition-colors uppercase tracking-widest">
                           Classified Vector
@@ -496,7 +496,7 @@ export function CreateQuestion() {
                         Raw Input Stream
                       </label>
                       <textarea
-                        className="w-full bg-[#050505] border border-white/5 rounded-xl text-gray-300 px-5 py-4 focus:outline-none focus:border-[#2df07b] font-mono text-[13px] min-h-[120px] shadow-xl custom-scrollbar"
+                        className="w-full bg-[#050505] border border-white/5 rounded-xl text-gray-300 px-5 py-4 focus:outline-none focus:border-accent font-mono text-[13px] min-h-30 shadow-xl custom-scrollbar"
                         value={tc.input}
                         onChange={(e) =>
                           updateTestCase(i, "input", e.target.value)
@@ -509,7 +509,7 @@ export function CreateQuestion() {
                         Integrity Threshold (Output)
                       </label>
                       <textarea
-                        className="w-full bg-[#050505] border border-white/5 rounded-xl text-[#2df07b] px-5 py-4 focus:outline-none focus:border-[#2df07b] font-mono text-[13px] min-h-[120px] shadow-xl custom-scrollbar"
+                        className="w-full bg-[#050505] border border-white/5 rounded-xl text-accent px-5 py-4 focus:outline-none focus:border-accent font-mono text-[13px] min-h-30 shadow-xl custom-scrollbar"
                         value={tc.expectedOutput}
                         onChange={(e) =>
                           updateTestCase(i, "expectedOutput", e.target.value)
@@ -522,7 +522,7 @@ export function CreateQuestion() {
               ))}
 
               {testCases.length === 0 && (
-                <div className="text-center py-12 bg-white/[0.01] rounded-2xl border border-white/5 border-dashed">
+                <div className="text-center py-12 bg-white/1 rounded-2xl border border-white/5 border-dashed">
                   <p className="text-gray-600 text-[11px] font-bold uppercase tracking-widest">
                     No validation clusters defined.
                   </p>
@@ -543,7 +543,7 @@ export function CreateQuestion() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-64 bg-[#2df07b] hover:bg-[#25c464] text-black font-bold py-4 px-12 rounded-xl transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[12px] shadow-[#2df07b]/10"
+              className="w-full sm:w-64 bg-accent hover:bg-accent-dark text-black font-bold py-4 px-12 rounded-xl transition-all flex items-center justify-center gap-3 shadow-2xl active:scale-95 disabled:opacity-50 uppercase tracking-widest text-[12px] shadow-accent/10"
             >
               {loading ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -562,3 +562,4 @@ export function CreateQuestion() {
     </div>
   );
 }
+

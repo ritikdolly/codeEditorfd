@@ -1,13 +1,25 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { teacherService } from '../../services/api';
-import { BarChart2, BookOpen, Clock, Users, ArrowRight, ClipboardList, Calendar, CheckCircle, Play, AlertCircle } from 'lucide-react';
+import { 
+  BarChart2, 
+  BookOpen, 
+  Clock, 
+  Users, 
+  ArrowRight, 
+  ClipboardList, 
+  Calendar, 
+  CheckCircle, 
+  Play, 
+  AlertCircle,
+  Search,
+  ChevronRight
+} from 'lucide-react';
 
 export function TeacherResults() {
   const [tests, setTests] = useState([]);
   const [analyticsMap, setAnalyticsMap] = useState({});
   const [loading, setLoading] = useState(true);
-  
   const [filterQuery, setFilterQuery] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: 'startTime', direction: 'desc' });
 
@@ -96,151 +108,162 @@ export function TeacherResults() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+      <div className="p-6 flex items-center justify-center min-h-100">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
       </div>
     );
   }
 
-  const SortHeader = ({ label, sortKey, align='left' }) => (
-    <th 
-      className={`px-4 py-3 font-medium cursor-pointer hover:bg-slate-700/30 transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
+  const SortHeader = ({ label, sortKey, align = 'left' }) => (
+    <th
+      className={`px-6 py-5 font-bold text-[10px] text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors select-none ${align === 'center' ? 'text-center' : 'text-left'}`}
       onClick={() => handleSort(sortKey)}
     >
       <div className={`flex items-center gap-1.5 ${align === 'center' ? 'justify-center' : ''}`}>
         {label}
-        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-purple-400' : 'text-slate-600'}`}>
-          <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▲</span>
-          <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▼</span>
+        <span className={`text-[10px] flex flex-col -space-y-1 ${sortConfig.key === sortKey ? 'text-accent' : 'text-gray-700'}`}>
+          <span className={sortConfig.key === sortKey && sortConfig.direction === 'asc' ? 'opacity-100' : 'opacity-40'}>▴</span>
+          <span className={sortConfig.key === sortKey && sortConfig.direction === 'desc' ? 'opacity-100' : 'opacity-40'}>▾</span>
         </span>
       </div>
     </th>
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-10 animate-in fade-in duration-700">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-xl shadow-purple-500/20 ring-1 ring-white/20">
+    <div className="pb-20 relative z-10 animate-fade-in">
+      <div className="max-w-7xl mx-auto space-y-12">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-10 border-b border-white/5">
+          <div className="flex items-center gap-4">
+          <div className="p-3 rounded-2xl bg-linear-to-br from-accent to-emerald-600 shadow-xl shadow-accent/20 ring-1 ring-white/20">
             <BarChart2 className="text-white" size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Analytics Hub</h1>
-            <p className="text-slate-400 font-medium max-w-md">Select a test to deep-dive into student insights and performance metrics.</p>
+            <h1 className="text-4xl font-bold text-white tracking-tight uppercase">Test Results</h1>
+            <p className="text-gray-400 font-medium max-w-md mt-2 italic opacity-80 uppercase text-[10px] tracking-widest">Select a test to deep-dive into student insights.</p>
+          </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+            <div className="relative w-full sm:w-72">
+               <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+               <input 
+                 type="text"
+                 placeholder="Search tests..."
+                 value={filterQuery}
+                 onChange={(e) => setFilterQuery(e.target.value)}
+                 className="w-full bg-black/40 border border-white/5 rounded-2xl px-6 py-3.5 pl-12 text-sm text-white focus:outline-none focus:border-accent/50 transition-all placeholder:text-gray-700 font-bold uppercase tracking-tight"
+               />
+            </div>
+            <Link to="/teacher/tests/create" className="bg-accent hover:bg-accent-dark text-black font-bold py-3.5 px-8 rounded-2xl transition-all flex items-center justify-center gap-3 text-[11px] shadow-lg shadow-accent/20 active:scale-95 uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
+               <ClipboardList size={20} />
+               <span>Schedule New Test</span>
+            </Link>
           </div>
         </div>
-        
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
-          <input 
-            type="text"
-            placeholder="Search tests..."
-            value={filterQuery}
-            onChange={(e) => setFilterQuery(e.target.value)}
-            className="w-full sm:w-64 bg-slate-800/80 border border-slate-700/50 rounded-lg px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-purple-500 transition-colors placeholder:text-slate-500"
-          />
-          <Link to="/teacher/tests/create" className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 group whitespace-nowrap">
-             <ClipboardList size={18} />
-             <span>Schedule New Test</span>
-          </Link>
-        </div>
-      </div>
 
-      {tests.length === 0 ? (
-        <div className="glass-card p-16 flex flex-col items-center justify-center text-center border-dashed border-slate-700/50 group hover:border-purple-500/30 transition-colors">
-          <div className="w-24 h-24 rounded-full bg-slate-800/50 flex items-center justify-center mb-6 ring-1 ring-slate-700/50 group-hover:ring-purple-500/20 transition-all">
-            <BookOpen size={40} className="text-slate-600 group-hover:text-purple-400 transition-colors" />
+        {/* Tests List - Tabular View */}
+        {tests.length === 0 ? (
+          <div className="bg-[#111111] border border-white/5 border-dashed rounded-[48px] p-24 flex flex-col items-center justify-center text-center shadow-2xl group overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
+               <BookOpen size={150} className="text-accent" />
+            </div>
+            <ClipboardList className="text-white/5 mb-8" size={80} strokeWidth={1} />
+            <h3 className="text-3xl font-bold text-white mb-3 tracking-tight uppercase">No Tests Found</h3>
+            <p className="text-gray-500 mb-10 max-w-sm leading-relaxed font-medium italic opacity-60 uppercase text-[10px] tracking-widest">
+              Your assessment history is empty. Launch a new test to start collecting student performance data.
+            </p>
+            <Link to="/teacher/tests/create" className="bg-accent hover:bg-accent-dark text-black font-bold py-4 px-10 rounded-2xl transition-all active:scale-95 text-[11px] uppercase tracking-widest shadow-xl shadow-accent/20">
+              Create First Test
+            </Link>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">No Tests Found</h3>
-          <p className="text-slate-400 mb-8 max-w-sm leading-relaxed font-medium">
-            Your assessment history is empty. Launch a new test to start collecting student performance data.
-          </p>
-          <Link to="/teacher/tests/create" className="btn-primary px-8 py-3 rounded-2xl shadow-2xl">
-            Create First Test
-          </Link>
-        </div>
-      ) : (
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="text-xs text-slate-400 uppercase bg-slate-800/40 border-b border-slate-700/50">
-                <tr>
-                   <SortHeader label="Test Name" sortKey="name" />
-                   <SortHeader label="Status" sortKey="status" align="center" />
-                   <SortHeader label="Date & Time" sortKey="startTime" />
-                   <SortHeader label="Duration" sortKey="duration" />
-                   <SortHeader label="Appeared" sortKey="totalStudentsAppeared" align="center" />
-                   <SortHeader label="Passed" sortKey="totalStudentsPassed" align="center" />
-                   <SortHeader label="Failed" sortKey="totalStudentsFailed" align="center" />
-                   <th className="px-4 py-3 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700/30">
-                {processedTests.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="px-4 py-8 text-center text-slate-500">
-                      No tests match your search.
-                    </td>
+        ) : (
+          <div className="bg-[#111111] border border-white/5 rounded-[40px] overflow-hidden shadow-2xl relative group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent/20 to-transparent"></div>
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-white/[0.02] border-b border-white/5">
+                    <SortHeader label="TEST NAME" sortKey="name" />
+                    <SortHeader label="STATUS" sortKey="status" align="center" />
+                    <SortHeader label="DATE & TIME" sortKey="startTime" />
+                    <SortHeader label="DURATION" sortKey="duration" />
+                    <SortHeader label="APPEARED" sortKey="totalStudentsAppeared" align="center" />
+                    <SortHeader label="PASSED" sortKey="totalStudentsPassed" align="center" />
+                    <SortHeader label="FAILED" sortKey="totalStudentsFailed" align="center" />
+                    <th className="px-8 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">ACTION</th>
                   </tr>
-                ) : (
-                  processedTests.map(test => {
-                    const analytics = analyticsMap[test.id];
-                    
-                    return (
-                      <tr key={test.id} className="hover:bg-slate-700/20 transition-colors group">
-                         <td className="px-4 py-4">
-                            <p className="text-white font-bold group-hover:text-purple-300 transition-colors">{test.name}</p>
-                         </td>
-                         <td className="px-4 py-4 text-center">
-                            <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border ${
+                </thead>
+                <tbody className="divide-y divide-white/[0.02]">
+                  {processedTests.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="px-8 py-20 text-center text-gray-700 italic font-bold uppercase tracking-widest">
+                        No tests match your search.
+                      </td>
+                    </tr>
+                  ) : (
+                    processedTests.map(test => {
+                      const analytics = analyticsMap[test.id];
+                      
+                      return (
+                        <tr key={test.id} className="hover:bg-white/[0.02] transition-all group/row">
+                          <td className="px-8 py-6">
+                            <p className="text-white font-bold text-sm uppercase tracking-tight group-hover/row:text-accent transition-colors">{test.name}</p>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                            <span className={`inline-flex px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
                               test.status === 'ACTIVE' 
-                                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                ? 'bg-accent/10 text-accent border-accent/20' 
                                 : test.status === 'COMPLETED'
-                                ? 'bg-slate-500/10 text-slate-400 border-slate-500/20'
-                                : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                                ? 'bg-white/5 text-gray-500 border-white/5'
+                                : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                             }`}>
                               {test.status || 'SCHEDULED'}
                             </span>
-                         </td>
-                         <td className="px-4 py-4">
-                            {test.startTime ? (
-                              <div className="flex flex-col">
-                                <span className="text-slate-200">{new Date(test.startTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                                <span className="text-slate-400 text-xs">{new Date(test.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-500 text-xs italic">Not Set</span>
-                            )}
-                         </td>
-                         <td className="px-4 py-4 text-slate-300">
-                            {test.duration} <span className="text-slate-500 text-xs">min</span>
-                         </td>
-                         <td className="px-4 py-4 text-center">
-                            <span className="text-white font-mono font-medium">{analytics?.totalStudentsAppeared || 0}</span>
-                         </td>
-                         <td className="px-4 py-4 text-center">
-                            <span className="text-emerald-400 font-mono font-bold">{analytics?.totalStudentsPassed || 0}</span>
-                         </td>
-                         <td className="px-4 py-4 text-center">
-                            <span className="text-rose-400 font-mono font-bold">{analytics?.totalStudentsFailed || 0}</span>
-                         </td>
-                         <td className="px-4 py-4 text-right">
-                            <Link 
-                              to={`/teacher/tests/${test.id}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 text-purple-400 hover:bg-purple-600 hover:text-white text-xs font-bold transition-colors"
-                            >
-                              <span>Inspect</span>
-                              <ArrowRight size={14} />
-                            </Link>
-                         </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          </td>
+                          <td className="px-6 py-6 font-mono text-gray-400 text-xs">
+                             {test.startTime ? (
+                               <div className="flex flex-col gap-0.5">
+                                 <span className="text-white/80">{new Date(test.startTime).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                                 <span className="text-[10px] text-gray-600 font-bold uppercase">{new Date(test.startTime).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                               </div>
+                             ) : (
+                               <span className="text-gray-700 italic font-bold uppercase text-[10px]">Not Set</span>
+                             )}
+                          </td>
+                          <td className="px-6 py-6 text-gray-400 font-bold text-xs">
+                             {test.duration} <span className="text-[9px] uppercase tracking-tighter opacity-50">MIN</span>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                             <span className="text-white font-mono font-bold">{analytics?.totalStudentsAppeared || 0}</span>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                             <span className="text-accent font-mono font-bold">{analytics?.totalStudentsPassed || 0}</span>
+                          </td>
+                          <td className="px-6 py-6 text-center">
+                             <span className="text-rose-500 font-mono font-bold">{analytics?.totalStudentsFailed || 0}</span>
+                          </td>
+                          <td className="px-8 py-6 text-right">
+                             <Link 
+                               to={`/teacher/tests/${test.id}`}
+                               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 text-white hover:bg-accent hover:text-black text-[10px] font-bold uppercase tracking-widest transition-all group/btn shadow-xl border border-white/5 hover:border-accent"
+                             >
+                               <span>Inspect</span>
+                               <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                             </Link>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
+
+
